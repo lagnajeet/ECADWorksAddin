@@ -64,7 +64,7 @@ namespace LP.SolidWorks.BlankAddin
             var imagePath = Path.Combine(Path.GetDirectoryName(typeof(TaskpaneIntegration).Assembly.CodeBase).Replace(@"file:\", string.Empty), "logo-small.png");
 
             // Create our Taskpane
-            mTaskpaneView = mSolidworksApplication.CreateTaskpaneView2(imagePath, "Settings");
+            mTaskpaneView = mSolidworksApplication.CreateTaskpaneView2(imagePath, "ECADWorks");
 
             // Load our UI into the taskpane
             mTaskpaneHost = (TaskpaneHostUI)mTaskpaneView.AddControl(TaskpaneIntegration.SWTASKPANE_PROGID, string.Empty);
