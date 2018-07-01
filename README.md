@@ -34,7 +34,7 @@ You might have to click on the Icon to open the settings box.
 
 1. Open your .brd file in eagle
 2. From the ULP menu run the "eagleJSONexporter_v1_0.ulp". You should see the following dialog
-![alt text](https://github.com/lagnajeet/ECADWorksAddin/blob/master/images/MCAD.png "Eagle JSON export ULP")
+![alt text](https://github.com/lagnajeet/ECADWorksAddin/blob/master/images/board_JSON_export.png "Eagle JSON export ULP")
 3. Set the board thickness (in mm) and click "Export JSON". Save the generated JSON file somewhere in your computer.
 4. In Solidworks Click on "Open Board" and browse for the JSON file you just created.
 5. If all goes well you should see the board with cutouts and holes and the component list dropdown popolated with the components in the board
