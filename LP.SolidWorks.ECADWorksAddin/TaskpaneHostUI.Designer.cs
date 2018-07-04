@@ -84,12 +84,16 @@
             this.checkBoxCollisionDetection = new System.Windows.Forms.CheckBox();
             this.buttonSaveLibrary = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.numericUpDownBoardHeight = new System.Windows.Forms.NumericUpDown();
+            this.buttonChangeHeight = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownAngle)).BeginInit();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownIncrement)).BeginInit();
             this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownBoardHeight)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonBrowseJson
@@ -313,11 +317,11 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(134, 21);
+            this.label6.Location = new System.Drawing.Point(151, 22);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(72, 13);
+            this.label6.Size = new System.Drawing.Size(57, 13);
             this.label6.TabIndex = 35;
-            this.label6.Text = "Degree Along";
+            this.label6.Text = "Deg Along";
             // 
             // comboAlongAxis
             // 
@@ -347,7 +351,7 @@
             0,
             0});
             this.numericUpDownAngle.Name = "numericUpDownAngle";
-            this.numericUpDownAngle.Size = new System.Drawing.Size(43, 20);
+            this.numericUpDownAngle.Size = new System.Drawing.Size(62, 20);
             this.numericUpDownAngle.TabIndex = 33;
             // 
             // btnRotate
@@ -561,7 +565,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(177, 74);
+            this.label14.Location = new System.Drawing.Point(154, 73);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(23, 13);
             this.label14.TabIndex = 58;
@@ -578,19 +582,20 @@
             // 
             // numericUpDownIncrement
             // 
+            this.numericUpDownIncrement.DecimalPlaces = 3;
             this.numericUpDownIncrement.Increment = new decimal(new int[] {
             5,
             0,
             0,
             65536});
-            this.numericUpDownIncrement.Location = new System.Drawing.Point(95, 71);
+            this.numericUpDownIncrement.Location = new System.Drawing.Point(89, 71);
             this.numericUpDownIncrement.Maximum = new decimal(new int[] {
             10,
             0,
             0,
             0});
             this.numericUpDownIncrement.Name = "numericUpDownIncrement";
-            this.numericUpDownIncrement.Size = new System.Drawing.Size(56, 20);
+            this.numericUpDownIncrement.Size = new System.Drawing.Size(62, 20);
             this.numericUpDownIncrement.TabIndex = 56;
             // 
             // buttonZMinus
@@ -706,13 +711,16 @@
             this.buttonSaveLibrary.Name = "buttonSaveLibrary";
             this.buttonSaveLibrary.Size = new System.Drawing.Size(101, 23);
             this.buttonSaveLibrary.TabIndex = 16;
-            this.buttonSaveLibrary.Text = "Save Library";
+            this.buttonSaveLibrary.Text = "thickness";
             this.buttonSaveLibrary.UseVisualStyleBackColor = true;
             this.buttonSaveLibrary.Visible = false;
             this.buttonSaveLibrary.Click += new System.EventHandler(this.buttonSaveLibrary_Click);
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.buttonChangeHeight);
+            this.groupBox4.Controls.Add(this.label15);
+            this.groupBox4.Controls.Add(this.numericUpDownBoardHeight);
             this.groupBox4.Controls.Add(this.buttonBrowseJson);
             this.groupBox4.Controls.Add(this.buttonSaveJSON);
             this.groupBox4.Location = new System.Drawing.Point(0, 3);
@@ -721,6 +729,44 @@
             this.groupBox4.TabIndex = 60;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Board Settings";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(205, 26);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(29, 13);
+            this.label15.TabIndex = 61;
+            this.label15.Text = "mm  ";
+            // 
+            // numericUpDownBoardHeight
+            // 
+            this.numericUpDownBoardHeight.DecimalPlaces = 3;
+            this.numericUpDownBoardHeight.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            65536});
+            this.numericUpDownBoardHeight.Location = new System.Drawing.Point(137, 22);
+            this.numericUpDownBoardHeight.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDownBoardHeight.Name = "numericUpDownBoardHeight";
+            this.numericUpDownBoardHeight.Size = new System.Drawing.Size(56, 20);
+            this.numericUpDownBoardHeight.TabIndex = 59;
+            this.numericUpDownBoardHeight.ValueChanged += new System.EventHandler(this.numericUpDownBoardHeight_ValueChanged);
+            // 
+            // buttonChangeHeight
+            // 
+            this.buttonChangeHeight.Location = new System.Drawing.Point(135, 48);
+            this.buttonChangeHeight.Name = "buttonChangeHeight";
+            this.buttonChangeHeight.Size = new System.Drawing.Size(101, 23);
+            this.buttonChangeHeight.TabIndex = 62;
+            this.buttonChangeHeight.Text = "Board Thickness";
+            this.buttonChangeHeight.UseVisualStyleBackColor = true;
+            this.buttonChangeHeight.Click += new System.EventHandler(this.buttonChangeHeight_Click);
             // 
             // TaskpaneHostUI
             // 
@@ -744,6 +790,8 @@
             this.groupBox3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownIncrement)).EndInit();
             this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownBoardHeight)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -806,6 +854,9 @@
         private System.Windows.Forms.Button buttonLoadLibrary;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.CheckBox checkLoadSelected;
+        private System.Windows.Forms.NumericUpDown numericUpDownBoardHeight;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Button buttonChangeHeight;
         //private CCombobox cb;
 
     }

@@ -38,15 +38,15 @@
       <HintPath>..\References\JSON.net\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SolidWorks.Interop.sldworks">
-      <HintPath>..\References\2017\SolidWorks.Interop.sldworks.dll</HintPath>
+      <HintPath>..\References\2016\SolidWorks.Interop.sldworks.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="SolidWorks.Interop.swconst">
-      <HintPath>..\References\2017\SolidWorks.Interop.swconst.dll</HintPath>
+      <HintPath>..\References\2016\SolidWorks.Interop.swconst.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="SolidWorks.Interop.swpublished">
-      <HintPath>..\References\2017\SolidWorks.Interop.swpublished.dll</HintPath>
+      <HintPath>..\References\2016\SolidWorks.Interop.swpublished.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />

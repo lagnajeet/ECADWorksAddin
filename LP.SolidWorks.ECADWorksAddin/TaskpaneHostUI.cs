@@ -165,9 +165,9 @@ namespace LP.SolidWorks.BlankAddin
                                 transformationOrigin[9] = Math.Round((rotationCenter[0] - boardOrigin[0]) - convertUnit(locationOrig.X), 8);
                                 transformationOrigin[10] = Math.Round((rotationCenter[1] - boardOrigin[1]) - convertUnit(locationOrig.Y), 8);
                                 if (side)
-                                    transformationOrigin[11] = Math.Round((ComponentTransformationOnBoard[11] - boardOrigin[2] - (boardHeight / 2)), 8);
+                                    transformationOrigin[11] = Math.Round((ComponentTransformationOnBoard[11] - (boardHeight / 2)), 8);
                                 else
-                                    transformationOrigin[11] = Math.Round((boardOrigin[2] - ComponentTransformationOnBoard[11] + (boardHeight / 2)), 8);
+                                    transformationOrigin[11] = Math.Round((-(ComponentTransformationOnBoard[11] + (boardHeight / 2))), 8);
                                 if (ComponentLibraryTransformations.ContainsKey(pair.Key))
                                     ComponentLibraryTransformations[pair.Key] = transformationOrigin;
                                 else
@@ -252,18 +252,23 @@ namespace LP.SolidWorks.BlankAddin
                                     if (side)
                                         transformationFinal[11] = (boardOrigin[2] + ComponentTransformationOnLibrary[11] + (boardHeight / 2));
                                     else
-                                        transformationFinal[11] = (boardOrigin[2] - ComponentTransformationOnLibrary[11] + (boardHeight / 2));
-
-                                    boardComponents[pair.Key][i].modelID = insertPart(@libraryJSONList[pair.Key].ModelPath, transformationFinal, c.componentID, TaskpaneIntegration.mSolidworksApplication);
-                                    boardComponents[pair.Key][i].modelPath = libraryJSONList[pair.Key].ModelPath;
-                                    moveLibraryComponent(boardComponents[pair.Key][i].modelID, new double[2] { ComponentTransformationOnLibrary[9], ComponentTransformationOnLibrary[10] }, c.location, TaskpaneIntegration.mSolidworksApplication);
-                                    if (ComponentModels.ContainsKey(pair.Key))
-                                        ComponentModels[pair.Key] = libraryJSONList[pair.Key].ModelPath;
+                                        transformationFinal[11] = (boardOrigin[2] - (ComponentTransformationOnLibrary[11] + (boardHeight / 2)));
+                                    string insertedModelId= insertPart(@libraryJSONList[pair.Key].ModelPath, transformationFinal, c.componentID, TaskpaneIntegration.mSolidworksApplication);
+                                    if (insertedModelId.Length > 2)
+                                    {
+                                        boardComponents[pair.Key][i].modelID = insertedModelId;
+                                        boardComponents[pair.Key][i].modelPath = libraryJSONList[pair.Key].ModelPath;
+                                        moveLibraryComponent(insertedModelId, new double[2] { ComponentTransformationOnLibrary[9], ComponentTransformationOnLibrary[10] }, c.location, TaskpaneIntegration.mSolidworksApplication);
+                                        if (ComponentModels.ContainsKey(pair.Key))
+                                            ComponentModels[pair.Key] = libraryJSONList[pair.Key].ModelPath;
+                                        else
+                                            ComponentModels.TryAdd(pair.Key, libraryJSONList[pair.Key].ModelPath);
+                                    }
                                     else
-                                        ComponentModels.TryAdd(pair.Key, libraryJSONList[pair.Key].ModelPath);
-                                    //b++;
-                                    //if (b > 2)
-                                    //    break;
+                                    {
+                                        boardComponents[pair.Key][i].modelID = "";
+                                        boardComponents[pair.Key][i].modelPath = "";
+                                    }
                                 }
                             }
                         }
@@ -318,26 +323,27 @@ namespace LP.SolidWorks.BlankAddin
                                     }
                                 }
                                 //offset calutation. it has nothing to do the angles.
-                                //if (side)
-                                //    transformationFinal[9] = convertUnit(c.location.X) + ComponentTransformationOnLibrary[9] + boardOrigin[0];
-                                //else
-                                //    transformationFinal[9] = convertUnit(c.location.X) - ComponentTransformationOnLibrary[9] + boardOrigin[0];
-                                //transformationFinal[10] = convertUnit(c.location.Y) + (ComponentTransformationOnLibrary[10] + boardOrigin[1]);
                                 if (side)
                                     transformationFinal[11] = (boardOrigin[2] + ComponentTransformationOnLibrary[11] + (boardHeight / 2));
                                 else
-                                    transformationFinal[11] = (boardOrigin[2] - ComponentTransformationOnLibrary[11] + (boardHeight / 2));
+                                    transformationFinal[11] = (boardOrigin[2] - (ComponentTransformationOnLibrary[11] + (boardHeight / 2)));
 
-                                boardComponents[pair.Key][i].modelID = insertPart(@libraryJSONList[pair.Key].ModelPath, transformationFinal, c.componentID, TaskpaneIntegration.mSolidworksApplication);
-                                boardComponents[pair.Key][i].modelPath = libraryJSONList[pair.Key].ModelPath;
-                                moveLibraryComponent(boardComponents[pair.Key][i].modelID, new double[2] { ComponentTransformationOnLibrary[9], ComponentTransformationOnLibrary[10] }, c.location, TaskpaneIntegration.mSolidworksApplication);
-                                if (ComponentModels.ContainsKey(pair.Key))
-                                    ComponentModels[pair.Key] = libraryJSONList[pair.Key].ModelPath;
+                                string insertedModelId = insertPart(@libraryJSONList[pair.Key].ModelPath, transformationFinal, c.componentID, TaskpaneIntegration.mSolidworksApplication);
+                                if (insertedModelId.Length > 2)
+                                {
+                                    boardComponents[pair.Key][i].modelID = insertedModelId;
+                                    boardComponents[pair.Key][i].modelPath = libraryJSONList[pair.Key].ModelPath;
+                                    moveLibraryComponent(insertedModelId, new double[2] { ComponentTransformationOnLibrary[9], ComponentTransformationOnLibrary[10] }, c.location, TaskpaneIntegration.mSolidworksApplication);
+                                    if (ComponentModels.ContainsKey(pair.Key))
+                                        ComponentModels[pair.Key] = libraryJSONList[pair.Key].ModelPath;
+                                    else
+                                        ComponentModels.TryAdd(pair.Key, libraryJSONList[pair.Key].ModelPath);
+                                }
                                 else
-                                    ComponentModels.TryAdd(pair.Key, libraryJSONList[pair.Key].ModelPath);
-                                //b++;
-                                //if (b > 2)
-                                //    break;
+                                {
+                                    boardComponents[pair.Key][i].modelID = "";
+                                    boardComponents[pair.Key][i].modelPath = "";
+                                }
                             }
 
                         }
@@ -568,7 +574,8 @@ namespace LP.SolidWorks.BlankAddin
                 return (swComponent.Name2 + "@" + AssemblyTitle);
             }
             else
-                return "";
+                swModel.ClearSelection2(true);
+            return "";
 
         }
         private string insertNote(string text, double X, double Y, double Z, bool side, SldWorks mSolidworksApplication)
@@ -586,7 +593,7 @@ namespace LP.SolidWorks.BlankAddin
             myNote = (Note)Part.InsertNote("< FONT color = " + swColor + " >< FONT style = B > " + text);
             if ((myNote != null))
             {
-                myNote.SetTextVerticalJustification((int)swTextAlignmentVertical_e.swTextAlignmentBottom);
+                //myNote.SetTextVerticalJustification((int)swTextAlignmentVertical_e.swTextAlignmentBottom);        //SW > 2017
                 myNote.SetTextJustification((int)swTextJustification_e.swTextJustificationCenter);
                 myNote.LockPosition = true;
                 myAnnotation = (Annotation)myNote.GetAnnotation();
@@ -656,6 +663,12 @@ namespace LP.SolidWorks.BlankAddin
                     boardOrigin[0] = (double)swTransform.ArrayData[9];
                     boardOrigin[1] = (double)swTransform.ArrayData[10];
                     boardOrigin[2] = (double)swTransform.ArrayData[11];
+                    translateComponentDragOperator(boardPartID, new double[3] { 0, 0, -swTransform.ArrayData[11] }, false, TaskpaneIntegration.mSolidworksApplication,true);
+                    swTransform = default(MathTransform);
+                    swTransform = swComponent.Transform2;
+                    boardOrigin[0] = (double)swTransform.ArrayData[9];
+                    boardOrigin[1] = (double)swTransform.ArrayData[10];
+                    boardOrigin[2] = 0;// (double)swTransform.ArrayData[11];
                 }
                 else
                 {
@@ -805,7 +818,8 @@ namespace LP.SolidWorks.BlankAddin
                 return (swComponent.Name2 + "@" + AssemblyTitle);
             }
             else
-                return "";
+                swModel.ClearSelection2(true);
+            return "";
 
         }
 
@@ -1213,6 +1227,7 @@ namespace LP.SolidWorks.BlankAddin
                     }
                 }
             }
+            boardJSON.Parts.Board_Part.Shape.Extrusion.Top_Height = (double)numericUpDownBoardHeight.Value;
         }
 
         private List<double[]> getTransformations(string componentID, SldWorks mSolidworksApplication)
@@ -1278,9 +1293,9 @@ namespace LP.SolidWorks.BlankAddin
                 double actualY = Y + boardOrigin[1];
                 double actualZ = 0;
                 if (side)
-                    actualZ = boardOrigin[2] + boardHeight + (ZHeight / 2);
+                    actualZ = boardOrigin[2] + boardHeight/2 + (ZHeight / 2);
                 else
-                    actualZ = boardOrigin[2] - (ZHeight / 2);
+                    actualZ = boardOrigin[2] - boardHeight/2 - (ZHeight / 2);
                 double deltaX = actualX - currentX;
                 double deltaY = actualY - currentY;
                 double deltaZ = actualZ - currentZ;
@@ -1433,9 +1448,10 @@ namespace LP.SolidWorks.BlankAddin
                     {
                         //rotate in same direction if rotating along the vertical axis
                         //double[] ret = getPerpendicullarUnitVector(modelID, TaskpaneIntegration.mSolidworksApplication);
-                        //if (closeEnough(Math.Abs(ret[alongAxis]), 1))
-                        //    if (!boardComponents[componentPackage][i].side)
-                        //        angle = 360 - angle;
+
+                        if (alongAxis==2)
+                            if (!boardComponents[componentPackage][i].side)
+                                angle = 360 - angle;
                         RotateComponentAlongAxis(modelID, angle, alongAxis, TaskpaneIntegration.mSolidworksApplication);
                     }
                 }
@@ -1906,7 +1922,7 @@ namespace LP.SolidWorks.BlankAddin
 
         }
 
-        private void translateComponentDragOperator(string componentID, double[] distance, bool detectCollision, SldWorks mSolidworksApplication)
+        private void translateComponentDragOperator(string componentID, double[] distance, bool detectCollision, SldWorks mSolidworksApplication,bool forcemove=false)
         {
             //AssemblyDoc swAssy;
             bool boolstatus;
@@ -1932,6 +1948,16 @@ namespace LP.SolidWorks.BlankAddin
             swComp = (Component2)swSelMgr.GetSelectedObject6(1, -1);
             if (swComp != null)
             {
+                bool was_forced = false;
+                swAssy = (AssemblyDoc)swModel;
+                if (swComp.IsFixed())
+                {
+                    if (forcemove)
+                    {
+                        swAssy.UnfixComponent();
+                        was_forced = true;
+                    }
+                }
                 swTransform = swComp.Transform2;
                 //MessageBox.Show(swTransform.ArrayData);
                 MathUtility swMathUtil;
@@ -1947,7 +1973,7 @@ namespace LP.SolidWorks.BlankAddin
                     else
                         nPts[i] = 0;
                 }
-                swAssy = (AssemblyDoc)swModel;
+                
                 swXform = swMathUtil.CreateTransform(nPts);
                 swDragOp = (DragOperator)swAssy.GetDragOperator();
                 bRet = swDragOp.AddComponent(swComp, false);
@@ -1974,6 +2000,12 @@ namespace LP.SolidWorks.BlankAddin
                 bRet = swDragOp.Drag(swXform);
 
                 bRet = swDragOp.EndDrag();
+                swModel.Extension.SelectByID2(componentID, "COMPONENT", 0, 0, 0, false, 0, null, 0);
+                if (was_forced)
+                {
+                    swAssy.FixComponent();
+                }
+                swModel.ClearSelection2(true);
             }
         }
 
@@ -2045,9 +2077,12 @@ namespace LP.SolidWorks.BlankAddin
                 swSelMgr.AddSelectionListObject(swComp, null);
             }
         }
-        private double convertUnit(double input)
+        private double convertUnit(double input,bool reverse=false)
         {
-            return input / 1000;
+            if(reverse)
+                return input * 1000;
+            else
+                return input / 1000;
         }
         private string createBoardFromIDF(string emnfile, SldWorks mSolidworksApplication)
         {
@@ -2067,6 +2102,7 @@ namespace LP.SolidWorks.BlankAddin
 
             swModel.SketchManager.AddToDB = true;
             boardHeight = convertUnit((double)boardJSON.Parts.Board_Part.Shape.Extrusion.Top_Height);
+            numericUpDownBoardHeight.Value = (decimal)boardJSON.Parts.Board_Part.Shape.Extrusion.Top_Height;
             JArray vertices = (JArray)boardJSON.Parts.Board_Part.Shape.Extrusion.Outline.Polycurve_Area.Vertices;
             for (int i = 1; i < vertices.Count; i++)
             {
@@ -2102,13 +2138,18 @@ namespace LP.SolidWorks.BlankAddin
             boolstatus = swModel.Extension.SelectByID2(feature.Name, "SKETCH", 0, 0, 0, false, 0, null, 0);
             //swModel.ShowNamedView2("*Trimetric", 8);
             //boolstatus = swModel.Extension.SelectByID2("Sketch2", "SKETCH", 0, 0, 0, False, 4, Nothing, 0)
-            Feature extrude = swModel.FeatureManager.FeatureExtrusion2(true, false, false, 0, 0, boardHeight, 0, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
+            Feature extrude = swModel.FeatureManager.FeatureExtrusion2(true, false, false, 0, 0, 0.000001, 0, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
             extrude.Name = "BOARD_OUTLINE";
             boardSketch = extrude.Name;
             boolstatus = swModel.Extension.SelectByID2(boardSketch, "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
             // Get the sketch feature
             Feature swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
-            // Clean up
+            ExtrudeFeatureData2 swExtrudeData = (ExtrudeFeatureData2)swFeature.GetDefinition();
+            swExtrudeData.BothDirections = true;
+            swExtrudeData.SetDepth(true, boardHeight / 2);
+            swExtrudeData.SetDepth(false, boardHeight / 2);
+            swFeature.ModifyDefinition(swExtrudeData, swModel, null);
+            swExtrudeData.ReleaseSelectionAccess();
             swModel.ClearSelection2(true);
             // Set the color of the sketch
             double[] swMaterialPropertyValues = (double[])swModel.MaterialPropertyValues;
@@ -2208,8 +2249,10 @@ namespace LP.SolidWorks.BlankAddin
             boolstatus = swModel.EditRebuild3();
             swModel.ClearSelection2(true);
             boolstatus = swModel.Extension.SelectByID2(feature.Name, "SKETCH", 0, 0, 0, false, 0, null, 0);
-            Feature extrude = swModel.FeatureManager.FeatureCut4(false, false, false, 0, 0, boardHeight * 2, boardHeight * 2, false, false, false, false, 0, 0, 
-                                                                    false, false, false, false, false, true, true, true, true, false, 0, 0, false, false);
+            Feature extrude = swModel.FeatureManager.FeatureCut3(false, false, false, 0, 0, boardHeight * 2, boardHeight * 2, false, false, false, false, 0, 0, 
+                                                                    false, false, false, false, false, true, true, true, true, false, 0, 0, false); 
+            //Feature extrude = swModel.FeatureManager.FeatureCut4(false, false, false, 0, 0, boardHeight * 2, boardHeight * 2, false, false, false, false, 0, 0, 
+            //                                                        false, false, false, false, false, true, true, true, true, false, 0, 0, false, false);        SW > 2017
             if (extrude != null)
             {
                 extrude.Name = "BOARD_HOLES";
@@ -2217,7 +2260,14 @@ namespace LP.SolidWorks.BlankAddin
                 boolstatus = swModel.Extension.SelectByID2(boardSketch, "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
                 // Get the sketch feature
                 Feature swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
-                // Clean up
+                swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+                swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                ExtrudeFeatureData2 swExtrudeData = (ExtrudeFeatureData2)swFeature.GetDefinition();
+                swExtrudeData.BothDirections = true;
+                swExtrudeData.SetDepth(true, boardHeight * 0.55);
+                swExtrudeData.SetDepth(false, boardHeight * 0.55);
+                swFeature.ModifyDefinition(swExtrudeData, swModel, null);
+                swExtrudeData.ReleaseSelectionAccess();
                 swModel.ClearSelection2(true);
                 // Set the color of the sketch
                 double[] swMaterialPropertyValues = (double[])swModel.MaterialPropertyValues;
@@ -2701,6 +2751,90 @@ namespace LP.SolidWorks.BlankAddin
             mSolidworksApplication.CloseDoc(ModelTitle);
 
             return swExtrudeData.GetDepth(true);
+        }
+        private void setBoardThickness(double thickness,SldWorks mSolidworksApplication)
+        {
+            int status = 0;
+            int warnings = 0;
+            bool boolstatus = false;
+            ModelDoc2 swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            boolstatus = swModel.Extension.SelectByID2(boardPartID, "COMPONENT", 0, 0, 0, false, 0, null, 0);
+            AssemblyDoc swAssy = (AssemblyDoc)swModel;
+            swAssy.OpenCompFile();
+            swModel = mSolidworksApplication.OpenDoc6(boardPartPath, 1, 0, "", status, warnings);
+            swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            SelectionMgr swSelMgr = (SelectionMgr)swModel.SelectionManager;
+            //string[] swModelConfigs = (string[])swModel.GetConfigurationNames();
+
+            bool boolStatus;
+            // Select the sketch
+            boolStatus = swModel.Extension.SelectByID2("BOARD_OUTLINE", "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
+            // Get the sketch feature
+            Feature swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
+            ExtrudeFeatureData2 swExtrudeData = (ExtrudeFeatureData2)swFeature.GetDefinition();
+            swExtrudeData.BothDirections = true;
+            swExtrudeData.SetDepth(true, thickness/2);
+            swExtrudeData.SetDepth(false, thickness / 2);
+            swFeature.ModifyDefinition(swExtrudeData, swModel, null);
+            swExtrudeData.ReleaseSelectionAccess();
+
+            swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            swSelMgr = (SelectionMgr)swModel.SelectionManager;
+            boolStatus = swModel.Extension.SelectByID2("BOARD_HOLES", "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
+            // Get the sketch feature
+            swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
+            swExtrudeData = (ExtrudeFeatureData2)swFeature.GetDefinition();
+            swExtrudeData.BothDirections = true;
+            swExtrudeData.SetDepth(true, thickness*0.55);
+            swExtrudeData.SetDepth(false, thickness * 0.55);
+            swFeature.ModifyDefinition(swExtrudeData, swModel, null);
+            swExtrudeData.ReleaseSelectionAccess();
+
+            // Clean up
+            swModel.ClearSelection2(true);
+            swModel.Visible = false;
+            status = swModel.SaveAs3(boardPartPath, 0, 2);
+            string ModelTitle = swModel.GetTitle();
+            swModel = null;
+            mSolidworksApplication.CloseDoc(ModelTitle);
+            double halfHeightDifference = (thickness-boardHeight)/2;
+            boardHeight = thickness;
+
+            swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            boolstatus = swModel.Extension.SelectByID2(boardPartID, "COMPONENT", 0, 0, 0, false, 0, null, 0);
+            swSelMgr = (SelectionMgr)swModel.SelectionManager;
+            Component2 swComponent = (Component2)swSelMgr.GetSelectedObject6(1, -1);
+            if (swComponent != null)
+            {
+                MathTransform swTransform = default(MathTransform);
+                swTransform = swComponent.Transform2;
+                
+                //double[] BoxArray = (double[])swComponent.GetBox(false, false);
+                //double[] boardOriginShift = new double[3] { swTransform .ArrayData[9] - boardOrigin[0], swTransform.ArrayData[10] - boardOrigin[1] , swTransform.ArrayData[11] - boardOrigin[2]  };
+                translateComponentDragOperator(boardPartID, new double[3] { 0, 0, -swTransform.ArrayData[11] }, false, TaskpaneIntegration.mSolidworksApplication,true);
+                swTransform = swComponent.Transform2;
+                boardOrigin = new double[3] { swTransform.ArrayData[9], swTransform.ArrayData[10], swTransform.ArrayData[11] };
+                //boardOrigin[2] = (BoxArray[2] + BoxArray[5]) / 2;
+
+                if (boardComponents.Count > 0)
+                {
+                    foreach (KeyValuePair<string, List<ComponentAttribute>> entry in boardComponents)
+                    {
+                        string componentPackage = entry.Key;
+                        for (int i = 0; i < entry.Value.Count; i++)
+                        {
+                            string modelID = (string)entry.Value[i].modelID;
+                            if (modelID.Length > 2)
+                            {
+                                if (boardComponents[componentPackage][i].side)
+                                    translateComponentDragOperator(modelID, new double[3] { 0, 0, +halfHeightDifference }, false, TaskpaneIntegration.mSolidworksApplication);
+                                else
+                                    translateComponentDragOperator(modelID, new double[3] { 0, 0, -halfHeightDifference }, false, TaskpaneIntegration.mSolidworksApplication);
+                            }
+                        }
+                    }
+                }
+            }
         }
         public static Image<Bgra, Byte> Overlay(Image<Bgra, Byte> target, Image<Bgra, Byte> overlay)
         {
@@ -3270,12 +3404,9 @@ namespace LP.SolidWorks.BlankAddin
             //swExtrudeData.AccessSelections(swCompModel, null);
 
 
-            //boolstatus = swModelDocExt.SelectByID2("", "FACE", 0, 0, 1.6E-03, false, 0, null, 0);
+            boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2]+(boardHeight/2), false, 0, null, 0);
             string directoryPath = Path.GetDirectoryName(boardPartPath);
-            //if (side)        //true is top side and false is bottom side
-            boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);
-            //else
-            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, 1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);
+            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault); //SW > 2017
             swSelMgr = (SelectionMgr)swModel.SelectionManager;
             swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
             swModel.ClearSelection2(true);
@@ -3298,9 +3429,8 @@ namespace LP.SolidWorks.BlankAddin
             //swMaterial.
             boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
 
-            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);
-            //else
-            boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, 1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);
+            boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2] - (boardHeight / 2), false, 0, null, 0);
+            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, 1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);     //sw>2017
             swSelMgr = (SelectionMgr)swModel.SelectionManager;
             swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
             swModel.ClearSelection2(true);
@@ -3431,6 +3561,8 @@ namespace LP.SolidWorks.BlankAddin
             checkBoxTopOnly.Checked = false;
             checkBoxBottomOnly.Checked = false;
             FileOpened = false;
+            labelAssignedFile.Text = "None";
+            labelInstances.Text = "None";
 
             globalSwAssy.UserSelectionPostNotify -= SwAssy_UserSelectionPostNotify;
             globalSwAssy.DeleteItemNotify -= SwAssy_DeleteItemNotify;
@@ -4044,8 +4176,9 @@ namespace LP.SolidWorks.BlankAddin
         {
             if (FileOpened)
             {
-                getLibraryTransform();
-                saveLibraryasProgramData();
+                //getLibraryTransform();
+                //saveLibraryasProgramData();
+                setBoardThickness(0.02, TaskpaneIntegration.mSolidworksApplication);
             }
             //saveLibrary();
         }
@@ -4088,16 +4221,19 @@ namespace LP.SolidWorks.BlankAddin
                     {
                         string directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
                         string libraryJSONPath = @Path.Combine(directory, pluginName, libraryFileName);
-                        ConcurrentDictionary<string, ComponentLibrary> libraryJSONList = JsonConvert.DeserializeObject<ConcurrentDictionary<string, ComponentLibrary>>(File.ReadAllText(@libraryJSONPath));
-                        int count = libraryJSONList.Count;
-                        foreach (var pair in boardComponents)
+                        if (File.Exists(libraryJSONPath))
                         {
-                            if (pair.Key == componentPackage)
+                            ConcurrentDictionary<string, ComponentLibrary> libraryJSONList = JsonConvert.DeserializeObject<ConcurrentDictionary<string, ComponentLibrary>>(File.ReadAllText(@libraryJSONPath));
+                            int count = libraryJSONList.Count;
+                            foreach (var pair in boardComponents)
                             {
-                                if (libraryJSONList.ContainsKey(pair.Key))
+                                if (pair.Key == componentPackage)
                                 {
-                                    found = true;
-                                    break;
+                                    if (libraryJSONList.ContainsKey(pair.Key))
+                                    {
+                                        found = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -4117,6 +4253,24 @@ namespace LP.SolidWorks.BlankAddin
         private void chkIsSMD_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void numericUpDownBoardHeight_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void buttonChangeHeight_Click(object sender, EventArgs e)
+        {
+            if (FileOpened)
+            {
+                DialogResult dialogResult = MessageBox.Show("Make sure the board thickness is compatible with the\nfabrication house and the overall electrical design.\n\nAre you sure you want to change the thickness? You can always change it back if needed.", "Warning", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    setBoardThickness(convertUnit((double)numericUpDownBoardHeight.Value), TaskpaneIntegration.mSolidworksApplication);
+                }
+                
+            }
         }
     }
 }
