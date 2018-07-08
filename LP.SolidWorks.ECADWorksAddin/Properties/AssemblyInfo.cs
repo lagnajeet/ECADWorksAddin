@@ -5,14 +5,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LP.SolidWorks.BlankAddin")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("LP.SolidWorks.ECADWorksAddin")]
+[assembly: AssemblyDescription("ECAD to MCAD conversion plugin for Solidworks")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LP.SolidWorks.BlankAddin")]
+[assembly: AssemblyProduct("LP.SolidWorks.ECADWorksAddin")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCulture("en-us")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

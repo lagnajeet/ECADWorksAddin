@@ -84,9 +84,9 @@
             this.checkBoxCollisionDetection = new System.Windows.Forms.CheckBox();
             this.buttonSaveLibrary = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.buttonChangeHeight = new System.Windows.Forms.Button();
             this.label15 = new System.Windows.Forms.Label();
             this.numericUpDownBoardHeight = new System.Windows.Forms.NumericUpDown();
-            this.buttonChangeHeight = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownAngle)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -711,7 +711,7 @@
             this.buttonSaveLibrary.Name = "buttonSaveLibrary";
             this.buttonSaveLibrary.Size = new System.Drawing.Size(101, 23);
             this.buttonSaveLibrary.TabIndex = 16;
-            this.buttonSaveLibrary.Text = "thickness";
+            this.buttonSaveLibrary.Text = "IDF Open";
             this.buttonSaveLibrary.UseVisualStyleBackColor = true;
             this.buttonSaveLibrary.Visible = false;
             this.buttonSaveLibrary.Click += new System.EventHandler(this.buttonSaveLibrary_Click);
@@ -729,6 +729,16 @@
             this.groupBox4.TabIndex = 60;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Board Settings";
+            // 
+            // buttonChangeHeight
+            // 
+            this.buttonChangeHeight.Location = new System.Drawing.Point(135, 48);
+            this.buttonChangeHeight.Name = "buttonChangeHeight";
+            this.buttonChangeHeight.Size = new System.Drawing.Size(101, 23);
+            this.buttonChangeHeight.TabIndex = 62;
+            this.buttonChangeHeight.Text = "Board Thickness";
+            this.buttonChangeHeight.UseVisualStyleBackColor = true;
+            this.buttonChangeHeight.Click += new System.EventHandler(this.buttonChangeHeight_Click);
             // 
             // label15
             // 
@@ -757,16 +767,6 @@
             this.numericUpDownBoardHeight.Size = new System.Drawing.Size(56, 20);
             this.numericUpDownBoardHeight.TabIndex = 59;
             this.numericUpDownBoardHeight.ValueChanged += new System.EventHandler(this.numericUpDownBoardHeight_ValueChanged);
-            // 
-            // buttonChangeHeight
-            // 
-            this.buttonChangeHeight.Location = new System.Drawing.Point(135, 48);
-            this.buttonChangeHeight.Name = "buttonChangeHeight";
-            this.buttonChangeHeight.Size = new System.Drawing.Size(101, 23);
-            this.buttonChangeHeight.TabIndex = 62;
-            this.buttonChangeHeight.Text = "Board Thickness";
-            this.buttonChangeHeight.UseVisualStyleBackColor = true;
-            this.buttonChangeHeight.Click += new System.EventHandler(this.buttonChangeHeight_Click);
             // 
             // TaskpaneHostUI
             // 
