@@ -711,7 +711,7 @@
             this.buttonSaveLibrary.Name = "buttonSaveLibrary";
             this.buttonSaveLibrary.Size = new System.Drawing.Size(101, 23);
             this.buttonSaveLibrary.TabIndex = 16;
-            this.buttonSaveLibrary.Text = "IDF Open";
+            this.buttonSaveLibrary.Text = "Save Decals";
             this.buttonSaveLibrary.UseVisualStyleBackColor = true;
             this.buttonSaveLibrary.Visible = false;
             this.buttonSaveLibrary.Click += new System.EventHandler(this.buttonSaveLibrary_Click);
