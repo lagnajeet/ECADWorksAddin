@@ -454,6 +454,8 @@ namespace LP.SolidWorks.BlankAddin
 
             string directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
             string boardStyleJSONFile = @Path.Combine(directory, pluginName, PCBStylePath);
+            string pluginDataDir = @Path.Combine(directory, pluginName);
+            Directory.CreateDirectory(pluginDataDir);
             if (!File.Exists(boardStyleJSONFile))
             {
                 using (StreamWriter file = File.CreateText(@boardStyleJSONFile))
