@@ -4119,58 +4119,68 @@ namespace LP.SolidWorks.BlankAddin
             swModel = mSolidworksApplication.OpenDoc6(boardPartPath, 1, 0, "", status, warnings);
             swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
             swModelDocExt = swModel.Extension;
-
-            swModel = mSolidworksApplication.ActivateDoc2(swModel.GetTitle(), true, errors);
-            swModelDocExt = swModel.Extension;
-
-            boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2]+(boardHeight/2), false, 0, null, 0);
-            string directoryPath = Path.GetDirectoryName(boardPartPath);
-            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault); //SW > 2017
+            boolstatus = swModelDocExt.SelectByID2("BOARD_OUTLINE", "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
             swSelMgr = (SelectionMgr)swModel.SelectionManager;
-            swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
-            swModel.ClearSelection2(true);
+            Feature swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
+            object Box = null;
+            swFeature.GetBox(ref Box);
+            double[] BoxArray = (double[])Box;
+            swModel.ClearSelection();
 
-            //Create the decal
-            swModelDocExt.DeleteAllDecals();
-            swDecal = (Decal)swModelDocExt.CreateDecal();
-            
-            swDecal.MaskType = 3;
-            swMaterial = (RenderMaterial)swDecal;
-            boolstatus = swMaterial.AddEntity(swFace);
-            swMaterial.TextureFilename = topDecal;
-            swMaterial.MappingType = 0;
-            swMaterial.FixedAspectRatio = false;
-            //swMaterial.Height = convertUnit(boardPhysicalHeight);
-            swMaterial.FitHeight = true;
-            swMaterial.Width = convertUnit(boardPhysicaWidth);
-            //swMaterial.FitHeight = true;
-            //swMaterial.FixedAspectRatio = true;
-            swMaterial.FitWidth = true;
-            //swMaterial.
-            boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
-            topDecalID = nDecalID;
-            boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2] - (boardHeight / 2), false, 0, null, 0);
+            boolstatus = swModelDocExt.SelectByID2("", "FACE", (BoxArray[0]+((BoxArray[3]- BoxArray[0])/2)), (BoxArray[1] + ((BoxArray[4] - BoxArray[1]) / 2)), BoxArray[5], false, 0, null, 0);
+            if (boolstatus)
+            {
+                string directoryPath = Path.GetDirectoryName(boardPartPath);
+                //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault); //SW > 2017
+                swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
+                swModel.ClearSelection2(true);
+
+                //Create the decal
+                swModelDocExt.DeleteAllDecals();
+                swDecal = (Decal)swModelDocExt.CreateDecal();
+
+                swDecal.MaskType = 3;
+                swMaterial = (RenderMaterial)swDecal;
+                boolstatus = swMaterial.AddEntity(swFace);
+                swMaterial.TextureFilename = topDecal;
+                swMaterial.MappingType = 0;
+                swMaterial.FixedAspectRatio = false;
+                //swMaterial.Height = convertUnit(boardPhysicalHeight);
+                swMaterial.FitHeight = true;
+                swMaterial.Width = convertUnit(boardPhysicaWidth);
+                //swMaterial.FitHeight = true;
+                //swMaterial.FixedAspectRatio = true;
+                swMaterial.FitWidth = true;
+                //swMaterial.
+                boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
+                topDecalID = nDecalID;
+            }
+              boolstatus = swModelDocExt.SelectByID2("", "FACE", (BoxArray[0] + ((BoxArray[3] - BoxArray[0]) / 2)), (BoxArray[1] + ((BoxArray[4] - BoxArray[1]) / 2)), BoxArray[2], false, 0, null, 0);
             //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, 1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);     //sw>2017
-            swSelMgr = (SelectionMgr)swModel.SelectionManager;
-            swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
-            swModel.ClearSelection2(true);
+            if (boolstatus)
+            {
+                swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
+                swModel.ClearSelection2(true);
 
-            //Create the decal
-            swDecal = (Decal)swModelDocExt.CreateDecal();
-            swDecal.MaskType = 3;
-            swMaterial = (RenderMaterial)swDecal;
-            boolstatus = swMaterial.AddEntity(swFace);
-            swMaterial.TextureFilename = bottomDecal;
-            swMaterial.MappingType = 0;
-            //swMaterial.FixedAspectRatio = true;
-            //swMaterial.FitHeight = true;
-            swMaterial.FixedAspectRatio = false;
-            //swMaterial.Height = convertUnit(boardPhysicalHeight);
-            swMaterial.FitHeight = true;
-            swMaterial.Width = convertUnit(boardPhysicaWidth);
-            swMaterial.FitWidth = true;
-            boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
-            bottomDecalID = nDecalID;
+                //Create the decal
+                swDecal = (Decal)swModelDocExt.CreateDecal();
+                swDecal.MaskType = 3;
+                swMaterial = (RenderMaterial)swDecal;
+                boolstatus = swMaterial.AddEntity(swFace);
+                swMaterial.TextureFilename = bottomDecal;
+                swMaterial.MappingType = 0;
+                //swMaterial.FixedAspectRatio = true;
+                //swMaterial.FitHeight = true;
+                swMaterial.FixedAspectRatio = false;
+                //swMaterial.Height = convertUnit(boardPhysicalHeight);
+                swMaterial.FitHeight = true;
+                swMaterial.Width = convertUnit(boardPhysicaWidth);
+                swMaterial.FitWidth = true;
+                boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
+                bottomDecalID = nDecalID;
+            }
             swModel.Visible = false;
             status = swModel.SaveAs3(boardPartPath, 0, 2);
             ModelTitle = swModel.GetTitle();
@@ -4210,33 +4220,6 @@ namespace LP.SolidWorks.BlankAddin
                     boardPartID = insertPart(boardPartPath, 0, 0, true, true, 0, 2, "", TaskpaneIntegration.mSolidworksApplication, true);
                     messageForm.labelMessage.Text = "Processing Traces and Silkscreen. . . ";
                     addSavedDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
-                    //List<Bgra> bgras = new List<Bgra> { };
-                    //Color color = lblMaskColor.BackColor;
-                    //var argbarray = BitConverter.GetBytes(color.ToArgb())
-                    //                .Reverse()
-                    //                .ToArray();
-                    //Bgra temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    //bgras.Add(temp);
-                    //color = lblTraceColor.BackColor;
-                    //argbarray = BitConverter.GetBytes(color.ToArgb())
-                    //                .Reverse()
-                    //                .ToArray();
-                    //temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    //bgras.Add(temp);
-                    //color = lblPadColor.BackColor;
-                    //argbarray = BitConverter.GetBytes(color.ToArgb())
-                    //                .Reverse()
-                    //                .ToArray();
-                    //temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    //bgras.Add(temp);
-                    //color = lblSilkColor.BackColor;
-                    //argbarray = BitConverter.GetBytes(color.ToArgb())
-                    //                .Reverse()
-                    //                .ToArray();
-                    //temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    //bgras.Add(temp);
-                    //writeDecalImage(boardJSON, true, bgras[0], bgras[1], bgras[2], bgras[3]);
-                    //writeDecalImage(boardJSON, false, bgras[0], bgras[1], bgras[2], bgras[3]);
                     messageForm.labelMessage.Text = "Processing Holes . . . ";
                     makeHoles(boardPartPath, TaskpaneIntegration.mSolidworksApplication);
                     //addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
