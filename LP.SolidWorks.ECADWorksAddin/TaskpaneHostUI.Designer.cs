@@ -84,6 +84,8 @@
             this.checkBoxCollisionDetection = new System.Windows.Forms.CheckBox();
             this.buttonSaveLibrary = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.buttonDecalImages = new System.Windows.Forms.Button();
+            this.buttonGerberFiles = new System.Windows.Forms.Button();
             this.buttonChangeHeight = new System.Windows.Forms.Button();
             this.label15 = new System.Windows.Forms.Label();
             this.numericUpDownBoardHeight = new System.Windows.Forms.NumericUpDown();
@@ -155,7 +157,7 @@
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.comboComponentList);
-            this.groupBox1.Location = new System.Drawing.Point(0, 235);
+            this.groupBox1.Location = new System.Drawing.Point(0, 264);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(244, 221);
             this.groupBox1.TabIndex = 11;
@@ -185,7 +187,7 @@
             // checkBoxBottomOnly
             // 
             this.checkBoxBottomOnly.AutoSize = true;
-            this.checkBoxBottomOnly.Location = new System.Drawing.Point(173, 64);
+            this.checkBoxBottomOnly.Location = new System.Drawing.Point(176, 64);
             this.checkBoxBottomOnly.Name = "checkBoxBottomOnly";
             this.checkBoxBottomOnly.Size = new System.Drawing.Size(59, 17);
             this.checkBoxBottomOnly.TabIndex = 41;
@@ -206,7 +208,7 @@
             // checkBoxTopOnly
             // 
             this.checkBoxTopOnly.AutoSize = true;
-            this.checkBoxTopOnly.Location = new System.Drawing.Point(128, 64);
+            this.checkBoxTopOnly.Location = new System.Drawing.Point(126, 64);
             this.checkBoxTopOnly.Name = "checkBoxTopOnly";
             this.checkBoxTopOnly.Size = new System.Drawing.Size(45, 17);
             this.checkBoxTopOnly.TabIndex = 40;
@@ -381,7 +383,7 @@
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.colorPresets);
             this.groupBox2.Controls.Add(this.buttonApplyStyle);
-            this.groupBox2.Location = new System.Drawing.Point(0, 87);
+            this.groupBox2.Location = new System.Drawing.Point(0, 116);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(244, 142);
             this.groupBox2.TabIndex = 12;
@@ -525,7 +527,7 @@
             // 
             // buttonSaveJSON
             // 
-            this.buttonSaveJSON.Location = new System.Drawing.Point(6, 48);
+            this.buttonSaveJSON.Location = new System.Drawing.Point(135, 77);
             this.buttonSaveJSON.Name = "buttonSaveJSON";
             this.buttonSaveJSON.Size = new System.Drawing.Size(101, 23);
             this.buttonSaveJSON.TabIndex = 14;
@@ -555,7 +557,7 @@
             this.groupBox3.Controls.Add(this.checkRotateSelected);
             this.groupBox3.Controls.Add(this.chkIsSMD);
             this.groupBox3.Controls.Add(this.buttonAutoAlign);
-            this.groupBox3.Location = new System.Drawing.Point(0, 462);
+            this.groupBox3.Location = new System.Drawing.Point(0, 491);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(244, 206);
             this.groupBox3.TabIndex = 15;
@@ -697,7 +699,7 @@
             // checkBoxCollisionDetection
             // 
             this.checkBoxCollisionDetection.AutoSize = true;
-            this.checkBoxCollisionDetection.Location = new System.Drawing.Point(3, 715);
+            this.checkBoxCollisionDetection.Location = new System.Drawing.Point(3, 754);
             this.checkBoxCollisionDetection.Name = "checkBoxCollisionDetection";
             this.checkBoxCollisionDetection.Size = new System.Drawing.Size(150, 17);
             this.checkBoxCollisionDetection.TabIndex = 59;
@@ -707,7 +709,7 @@
             // 
             // buttonSaveLibrary
             // 
-            this.buttonSaveLibrary.Location = new System.Drawing.Point(0, 686);
+            this.buttonSaveLibrary.Location = new System.Drawing.Point(0, 725);
             this.buttonSaveLibrary.Name = "buttonSaveLibrary";
             this.buttonSaveLibrary.Size = new System.Drawing.Size(101, 23);
             this.buttonSaveLibrary.TabIndex = 16;
@@ -718,6 +720,8 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.buttonDecalImages);
+            this.groupBox4.Controls.Add(this.buttonGerberFiles);
             this.groupBox4.Controls.Add(this.buttonChangeHeight);
             this.groupBox4.Controls.Add(this.label15);
             this.groupBox4.Controls.Add(this.numericUpDownBoardHeight);
@@ -725,10 +729,30 @@
             this.groupBox4.Controls.Add(this.buttonSaveJSON);
             this.groupBox4.Location = new System.Drawing.Point(0, 3);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(244, 78);
+            this.groupBox4.Size = new System.Drawing.Size(244, 107);
             this.groupBox4.TabIndex = 60;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Board Settings";
+            // 
+            // buttonDecalImages
+            // 
+            this.buttonDecalImages.Location = new System.Drawing.Point(6, 77);
+            this.buttonDecalImages.Name = "buttonDecalImages";
+            this.buttonDecalImages.Size = new System.Drawing.Size(101, 23);
+            this.buttonDecalImages.TabIndex = 64;
+            this.buttonDecalImages.Text = "Open Decals";
+            this.buttonDecalImages.UseVisualStyleBackColor = true;
+            this.buttonDecalImages.Click += new System.EventHandler(this.buttonDecalImages_Click);
+            // 
+            // buttonGerberFiles
+            // 
+            this.buttonGerberFiles.Location = new System.Drawing.Point(6, 48);
+            this.buttonGerberFiles.Name = "buttonGerberFiles";
+            this.buttonGerberFiles.Size = new System.Drawing.Size(101, 23);
+            this.buttonGerberFiles.TabIndex = 63;
+            this.buttonGerberFiles.Text = "Open Gerber";
+            this.buttonGerberFiles.UseVisualStyleBackColor = true;
+            this.buttonGerberFiles.Click += new System.EventHandler(this.buttonGerberFiles_Click);
             // 
             // buttonChangeHeight
             // 
@@ -857,6 +881,8 @@
         private System.Windows.Forms.NumericUpDown numericUpDownBoardHeight;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Button buttonChangeHeight;
+        private System.Windows.Forms.Button buttonDecalImages;
+        private System.Windows.Forms.Button buttonGerberFiles;
         //private CCombobox cb;
 
     }

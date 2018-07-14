@@ -29,10 +29,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Emgu.CV.World">
       <HintPath>..\References\emgucv\Emgu.CV.World.dll</HintPath>
+    </Reference>
+    <Reference Include="GerberLibrary">
+      <HintPath>..\References\GerberLibrary\GerberLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\References\JSON.net\Newtonsoft.Json.dll</HintPath>
@@ -73,6 +77,12 @@
     <Compile Include="message.Designer.cs">
       <DependentUpon>message.cs</DependentUpon>
     </Compile>
+    <Compile Include="Progress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Progress.Designer.cs">
+      <DependentUpon>Progress.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskpaneHostUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -81,6 +91,7 @@
     </Compile>
     <Compile Include="TaskpaneIntegration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UtilityClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="componentsForm.resx">
@@ -88,6 +99,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="message.resx">
       <DependentUpon>message.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Progress.resx">
+      <DependentUpon>Progress.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskpaneHostUI.resx">
       <DependentUpon>TaskpaneHostUI.cs</DependentUpon>

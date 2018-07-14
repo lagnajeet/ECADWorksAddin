@@ -50,6 +50,7 @@ namespace LP.SolidWorks.BlankAddin
         private AssemblyDoc globalSwAssy = null;
         private bool FileOpened = false;
         private bool isIDFFile = false;
+        private string gerberFile = "";
         private class ComponentAttribute
         {
             public PointF location;
@@ -3872,7 +3873,6 @@ namespace LP.SolidWorks.BlankAddin
             Face2 swFace = default(Face2);
             Decal swDecal = default(Decal);
             RenderMaterial swMaterial = default(RenderMaterial);
-            int nDecalID = 0;
             string ModelTitle;
             ModelDoc2 swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
             boolstatus = swModel.Extension.SelectByID2(boardPartID, "COMPONENT", 0, 0, 0, false, 0, null, 0);
@@ -4101,7 +4101,6 @@ namespace LP.SolidWorks.BlankAddin
 
         private void addDecalsToBoard(SldWorks mSolidworksApplication)
         {
-            int errors = 0;
             int status = 0;
             int warnings = 0;
             bool boolstatus;
@@ -4181,12 +4180,46 @@ namespace LP.SolidWorks.BlankAddin
                 boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
                 bottomDecalID = nDecalID;
             }
+            swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            swModelDocExt = swModel.Extension;
+            string[] swModelConfigs = (string[])swModel.GetConfigurationNames();
+            boolstatus = swModelDocExt.SelectByID2("BOARD_OUTLINE", "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
+            if (boolstatus)
+            {
+                swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
+                swModel.ClearSelection2(true);
+                // Set the color of the sketch
+                double[] swMaterialPropertyValues = (double[])swModel.MaterialPropertyValues;
+                swMaterialPropertyValues[0] = (double)((double)lblBoardColor.BackColor.R/255);
+                swMaterialPropertyValues[1] = (double)((double)lblBoardColor.BackColor.G/255);
+                swMaterialPropertyValues[2] = (double)((double)lblBoardColor.BackColor.B/255);
+                swFeature.SetMaterialPropertyValues2(swMaterialPropertyValues, (int)swInConfigurationOpts_e.swAllConfiguration, swModelConfigs);
+            }
+
+            swModel = (ModelDoc2)mSolidworksApplication.ActiveDoc;
+            swModelDocExt = swModel.Extension;
+            swModelConfigs = (string[])swModel.GetConfigurationNames();
+            boolstatus = swModelDocExt.SelectByID2("BOARD_HOLES", "BODYFEATURE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
+            if (boolstatus)
+            {
+                swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
+                swModel.ClearSelection2(true);
+                // Set the color of the sketch
+                double[] swMaterialPropertyValues = (double[])swModel.MaterialPropertyValues;
+                swMaterialPropertyValues[0] = (double)((double)lblHolesColor.BackColor.R / 255);
+                swMaterialPropertyValues[1] = (double)((double)lblHolesColor.BackColor.G / 255);
+                swMaterialPropertyValues[2] = (double)((double)lblHolesColor.BackColor.B / 255);
+                swFeature.SetMaterialPropertyValues2(swMaterialPropertyValues, (int)swInConfigurationOpts_e.swAllConfiguration, swModelConfigs);
+            }
             swModel.Visible = false;
             status = swModel.SaveAs3(boardPartPath, 0, 2);
             ModelTitle = swModel.GetTitle();
             swModel = null;
             mSolidworksApplication.CloseDoc(ModelTitle);
-
+            //changeBoardColor(lblBoardColor.BackColor, true, TaskpaneIntegration.mSolidworksApplication);
+            //changeBoardColor(lblHolesColor.BackColor, false, TaskpaneIntegration.mSolidworksApplication);
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -4335,7 +4368,47 @@ namespace LP.SolidWorks.BlankAddin
                 }
                 else
                 {
-                    MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                    if(gerberFile.Length>2)
+                    {
+                        if(File.Exists(gerberFile))
+                        {
+                            Progress P = new Progress(@gerberFile, lblMaskColor.BackColor, lblSilkColor.BackColor, lblPadColor.BackColor, lblTraceColor.BackColor);
+                            //P.Show();
+                            P.StartThread();
+                            P.ShowDialog();
+                            P = null;
+                            string directoryPath = Path.GetDirectoryName(boardPartPath);
+                            Mat imgPng = new Mat();
+                            CvInvoke.Imdecode(UtilityClass.TopDecal, ImreadModes.Unchanged, imgPng);
+                            Image<Bgra, byte> TopDecalImage = imgPng.ToImage<Bgra, byte>();
+                            //TopDecalImage = TopDecalImage.Flip(FlipType.Vertical);
+                            deleteFile(topDecal);
+                            topDecal = RandomString(10) + "top_decal.png";
+                            TopDecalImage.PyrUp().Save(@Path.Combine(directoryPath, topDecal));
+                            topDecal = @Path.Combine(directoryPath, topDecal);
+                            UtilityClass.TopDecal = null;
+                            imgPng.Dispose();
+                            TopDecalImage.Dispose();
+
+                            imgPng = new Mat();
+                            CvInvoke.Imdecode(UtilityClass.BottomDecal, ImreadModes.Unchanged, imgPng);
+                            Image<Bgra, byte> BottomDecalImage = imgPng.ToImage<Bgra, byte>();
+                            BottomDecalImage = BottomDecalImage.Flip(FlipType.Vertical).Flip(FlipType.Horizontal);
+                            deleteFile(bottomDecal);
+                            bottomDecal = RandomString(10) + "bottom_decal.png";
+                            BottomDecalImage.PyrUp().Save(@Path.Combine(directoryPath, bottomDecal));
+                            bottomDecal = @Path.Combine(directoryPath, bottomDecal);
+                            UtilityClass.BottomDecal = null;
+                            imgPng.Dispose();
+                            BottomDecalImage.Dispose();
+
+                            addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
+                        }
+                        else
+                            MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                    }
+                    else
+                        MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
                 }
             }
             //deleteFile(topDecal);
@@ -4657,7 +4730,7 @@ namespace LP.SolidWorks.BlankAddin
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     lblBoardColor.BackColor = dlg.Color;
-                    changeBoardColor(dlg.Color, true, TaskpaneIntegration.mSolidworksApplication);
+                    changeBoardColor(lblBoardColor.BackColor, true, TaskpaneIntegration.mSolidworksApplication);
                 }
             }
             catch (Exception)
@@ -4676,7 +4749,7 @@ namespace LP.SolidWorks.BlankAddin
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     lblHolesColor.BackColor = dlg.Color;
-                    changeBoardColor(dlg.Color, false, TaskpaneIntegration.mSolidworksApplication);
+                    changeBoardColor(lblHolesColor.BackColor, false, TaskpaneIntegration.mSolidworksApplication);
                 }
             }
             catch (Exception)
@@ -5005,6 +5078,55 @@ namespace LP.SolidWorks.BlankAddin
                 }
                 
             }
+        }
+
+        private void buttonGerberFiles_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog Openfile = new OpenFileDialog
+            {
+                Filter = "ZIP Files (*.zip)|*.zip",
+                Title = "Open zipped Gerber Files"
+            };
+            if (Openfile.ShowDialog() == DialogResult.OK)
+            {
+                gerberFile = Openfile.FileName;
+                Progress P = new Progress(@gerberFile, lblMaskColor.BackColor, lblSilkColor.BackColor, lblPadColor.BackColor, lblTraceColor.BackColor);
+                //P.Show();
+                P.StartThread();
+                P.ShowDialog();
+                P = null;
+                string directoryPath = Path.GetDirectoryName(boardPartPath);
+                Mat imgPng = new Mat();
+                CvInvoke.Imdecode(UtilityClass.TopDecal, ImreadModes.Unchanged, imgPng);
+                Image<Bgra, byte> TopDecalImage = imgPng.ToImage<Bgra, byte>();
+                //TopDecalImage = TopDecalImage.Flip(FlipType.Vertical);
+                deleteFile(topDecal);
+                topDecal = RandomString(10) + "top_decal.png";
+                TopDecalImage.PyrUp().Save(@Path.Combine(directoryPath, topDecal));
+                topDecal = @Path.Combine(directoryPath, topDecal);
+                UtilityClass.TopDecal = null;
+                imgPng.Dispose();
+                TopDecalImage.Dispose();
+
+                imgPng = new Mat();
+                CvInvoke.Imdecode(UtilityClass.BottomDecal, ImreadModes.Unchanged, imgPng);
+                Image<Bgra, byte> BottomDecalImage = imgPng.ToImage<Bgra, byte>();
+                BottomDecalImage = BottomDecalImage.Flip(FlipType.Vertical).Flip(FlipType.Horizontal);
+                deleteFile(bottomDecal);
+                bottomDecal = RandomString(10) + "bottom_decal.png";
+                BottomDecalImage.PyrUp().Save(@Path.Combine(directoryPath, bottomDecal));
+                bottomDecal = @Path.Combine(directoryPath, bottomDecal);
+                UtilityClass.BottomDecal = null;
+                imgPng.Dispose();
+                BottomDecalImage.Dispose();
+
+                addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
+            }
+        }
+
+        private void buttonDecalImages_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Not yet implemented");
         }
     }
 }
