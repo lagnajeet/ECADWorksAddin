@@ -1,4 +1,4 @@
-﻿namespace LP.SolidWorks.BlankAddin
+﻿namespace LP.SolidWorks.ECADWorksAddin
 {
     partial class messageFrm
     {

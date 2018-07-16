@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Emgu.CV.Structure;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,15 +11,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LP.SolidWorks.BlankAddin
+namespace LP.SolidWorks.ECADWorksAddin
 {
     public partial class Progress : Form, GerberLibrary.ProgressLog
     {
         private List<string> Files;
-        Color SolderMaskColor;
-        Color SilkScreenColor;
-        Color CopperColor;
-        Color TracesColor;
+        private Color SolderMaskColor;
+        private Color SilkScreenColor;
+        private Color CopperColor;
+        private Color TracesColor;
+        private dynamic boardJSON;
+        private Bgra maskColor;
+        private Bgra traceColor;
+        private Bgra padColor;
+        private Bgra silkColor;
+
+        public Progress(dynamic _boardJSON, Bgra _maskColor, Bgra _traceColor, Bgra _padColor, Bgra _silkColor)
+        {
+            boardJSON = _boardJSON;
+            maskColor = _maskColor;
+            traceColor = _traceColor;
+            padColor = _padColor;
+            silkColor = _silkColor;
+
+            InitializeComponent();
+            progressBar1.Value = 0;
+        }
         public Progress(string zippedGerber, Color _SolderMaskColor, Color _SilkScreenColor, Color _CopperColor, Color _tracescolor)
         {
             SolderMaskColor = _SolderMaskColor;
@@ -32,13 +50,29 @@ namespace LP.SolidWorks.BlankAddin
             Files.Add(zippedGerber);
         }
         Thread T = null;
-        internal void StartThread()
+        //renderType = 0 for gerber , 1 for JSON
+        internal void StartThread(int renderType)
         {
-            T = new Thread(new ThreadStart(doStuff));
-            T.Start();
+            if (renderType == 0)
+            {
+                T = new Thread(new ThreadStart(renderGerber));
+                T.Start();
+            }
+            if (renderType == 1)
+            {
+                T = new Thread(new ThreadStart(renderJson));
+                T.Start();
+            }
         }
-
-        public void doStuff()
+        public void renderJson()
+        {
+            SetProgress("JSON data rendering started", 0);
+            JSONLibrary.generateDecalImage(boardJSON,true, maskColor, traceColor, padColor, silkColor,this,50,0);
+            //SetProgress("Finished Rendering Top layer", 0);
+            JSONLibrary.generateDecalImage(boardJSON, false, maskColor, traceColor, padColor, silkColor,this,50,50);
+            SetProgress("Finished Rendering", 100);
+        }
+        public void renderGerber()
         {
             GerberLibrary.GerberImageCreator GIC = new GerberLibrary.GerberImageCreator();
             GerberLibrary.BoardRenderColorSet Colors = new GerberLibrary.BoardRenderColorSet();
@@ -134,19 +168,36 @@ namespace LP.SolidWorks.BlankAddin
                 }
                 else
                 {
-                    
-                    int temp = progressBar1.Value;
-                    temp += 2;
-                    if (temp >= 100)
+                    int temp;
+                    if (progress == -1)
                     {
-                        temp = 100;
-                        this.ControlBox = true;
+                        temp = progressBar1.Value;
+                        temp += 2;
+                        if (temp >= 100)
+                        {
+                            temp = 100;
+                            this.ControlBox = true;
+                        }
+                        else
+                            this.ControlBox = false;
+                        progressBar1.Value = temp;
                     }
                     else
-                        this.ControlBox = false;
-                    progressBar1.Value = temp;
+                    {
+                        temp = (int)progress;
+                        if (temp >= 100)
+                        {
+                            temp = 100;
+                            this.ControlBox = true;
+                        }
+                        else
+                            this.ControlBox = false;
+                        progressBar1.Value = temp;
+                    }
                 }
-                textBox1.Text = text + "\r\n" + textBox1.Text;
+                if(text.Trim().Length>0)
+                    textBox1.Text = text + "\r\n" + textBox1.Text;
+                textBox1.Refresh();
             }
         }
 

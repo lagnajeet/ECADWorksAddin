@@ -71,6 +71,7 @@
     <Compile Include="componentsForm.Designer.cs">
       <DependentUpon>componentsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="JSONLibrary.cs" />
     <Compile Include="message.cs">
       <SubType>Form</SubType>
     </Compile>

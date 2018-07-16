@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LP.SolidWorks.BlankAddin
+namespace LP.SolidWorks.ECADWorksAddin
 {
     public partial class messageFrm : Form
     {

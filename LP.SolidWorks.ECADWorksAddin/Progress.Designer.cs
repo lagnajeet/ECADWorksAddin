@@ -1,4 +1,4 @@
-﻿namespace LP.SolidWorks.BlankAddin
+﻿namespace LP.SolidWorks.ECADWorksAddin
 {
     partial class Progress
     {
@@ -68,7 +68,7 @@
             this.MinimizeBox = false;
             this.Name = "Progress";
             this.ShowIcon = false;
-            this.Text = "Rendering Gerber Files . . .";
+            this.Text = "Progress . . .";
             this.ResumeLayout(false);
             this.PerformLayout();
 
