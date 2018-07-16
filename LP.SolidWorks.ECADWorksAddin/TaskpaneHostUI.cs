@@ -2140,6 +2140,7 @@ namespace LP.SolidWorks.BlankAddin
             else
                 return new PointF(centers[0].X, centers[0].Y);
         }
+
         private string createBoardFromIDF(string emnfile, SldWorks mSolidworksApplication)
         {
             
@@ -2174,7 +2175,8 @@ namespace LP.SolidWorks.BlankAddin
                     {
                         if (line.Length > 2)
                         {
-                            List<string> lineElements = line.Split(' ').ToList();
+                            //List<string> lineElements = line.Split(' ').ToList();
+                            List<string> lineElements = splitString(line);
                             List<double> lineElementsDouble = new List<double> { };
                             lineElementsDouble.Clear();
                             for (int i = 0; i < lineElements.Count; i++)
@@ -2438,7 +2440,8 @@ namespace LP.SolidWorks.BlankAddin
                     {
                         if (line.Length > 2)
                         {
-                            List<string> lineElements = line.Split(' ').ToList();
+                            //List<string> lineElements = line.Split(' ').ToList();
+                            List<string> lineElements = splitString(line);
                             List<double> lineElementsDouble = new List<double> { };
                             lineElementsDouble.Clear();
                             int k = 0;
@@ -2511,7 +2514,25 @@ namespace LP.SolidWorks.BlankAddin
                 sb.Append(hash[i].ToString("X2"));
             return sb.ToString();
         }
-
+        private List<string> splitString(string line)
+        {
+            List<string> lineElements = line.Split('"')
+                     .Select((element, index) => index % 2 == 0  // If even index
+                                           ? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
+                                           : new string[] { element })  // Keep the entire item
+                     .SelectMany(element => element).ToList();
+            List<string> cleanLineElements = line.Split(' ').ToList();
+            cleanLineElements.Clear();
+            for (int i = 0; i < lineElements.Count; i++)
+            {
+                lineElements[i] = lineElements[i].Trim();
+                if (lineElements[i].Length > 0)
+                {
+                    cleanLineElements.Add(lineElements[i]);
+                }
+            }
+            return cleanLineElements;
+        }
         private void readComponentFromIDF(string emnfile, SldWorks mSolidworksApplication)
         {
             boardComponents.Clear();
@@ -2540,17 +2561,17 @@ namespace LP.SolidWorks.BlankAddin
                     {
                         if (line.Length > 2)
                         {
-                            List<string> lineElements = line.Split(' ').ToList();
-                            List<string> cleanLineElements = line.Split(' ').ToList();
-                            cleanLineElements.Clear();
-                            for (int i = 0; i < lineElements.Count; i++)
-                            {
-                                lineElements[i] = lineElements[i].Trim();
-                                if (lineElements[i].Length > 0)
-                                {
-                                    cleanLineElements.Add(lineElements[i]);
-                                }
-                            }
+                            //List<string> lineElements = line.Split(' ').ToList();
+                            List<string> cleanLineElements = splitString(line);
+                            //cleanLineElements.Clear();
+                            //for (int i = 0; i < lineElements.Count; i++)
+                            //{
+                            //    lineElements[i] = lineElements[i].Trim();
+                            //    if (lineElements[i].Length > 0)
+                            //    {
+                            //        cleanLineElements.Add(lineElements[i]);
+                            //    }
+                            //}
                             if(cleanLineElements.Count>3)
                             {
                                 //it's placement data for the package
