@@ -38,7 +38,8 @@ namespace LP.SolidWorks.ECADWorksAddin
             int tx = max_width / 2;
             int ty = max_height / 2;
             int prev_polygon_width = -1;
-
+            double min_x = 99999999999;
+            double min_y = 99999999999;
             Image<Gray, byte> My_Image_gray = null;
             Rectangle r;
             {
@@ -46,7 +47,15 @@ namespace LP.SolidWorks.ECADWorksAddin
                 JArray vertices = (JArray)boardJSON.Parts.Board_Part.Shape.Extrusion.Outline.Polycurve_Area.Vertices;
                 for (int i = 1; i < vertices.Count; i++)
                 {
-                    pointarray.Add(new Point(tx + Convert.ToInt32((double)vertices[i][0].ToObject(typeof(double))), ty + Convert.ToInt32((double)vertices[i][1].ToObject(typeof(double)))));
+                    if (Convert.ToInt32((double)vertices[i][0].ToObject(typeof(double))) < min_x)
+                        min_x = Convert.ToInt32((double)vertices[i][0].ToObject(typeof(double)));
+                    if (Convert.ToInt32((double)vertices[i][1].ToObject(typeof(double))) < min_y)
+                        min_y = Convert.ToInt32((double)vertices[i][1].ToObject(typeof(double)));
+                }
+
+                for (int i = 1; i < vertices.Count; i++)
+                {
+                    pointarray.Add(new Point(tx - (int)min_x + Convert.ToInt32((double)vertices[i][0].ToObject(typeof(double))), ty - (int)min_y + Convert.ToInt32((double)vertices[i][1].ToObject(typeof(double)))));
                     // textBox1.Text += "\r\n" + Convert.ToInt32((double)vertices[i][0].ToObject(typeof(double)) * scaling) + "," + Convert.ToInt32((double)vertices[i][1].ToObject(typeof(double)) * scaling);
                 }
                 My_Image_gray = new Image<Gray, byte>(max_width, max_height);
@@ -57,6 +66,8 @@ namespace LP.SolidWorks.ECADWorksAddin
                 int maxDim = r.Width > r.Height ? r.Width : r.Height;
                 double s = max_width / (2 * maxDim);
                 scaling = Convert.ToInt32(Math.Floor(s));
+                tx = (int)(tx - (min_x * scaling));
+                ty = (int)(ty - (min_y * scaling));
                 pointarray.Clear();
                 for (int i = 1; i < vertices.Count; i++)
                 {

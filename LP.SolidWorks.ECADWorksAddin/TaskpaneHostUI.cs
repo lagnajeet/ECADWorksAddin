@@ -3870,81 +3870,125 @@ namespace LP.SolidWorks.ECADWorksAddin
 
             if (FileOpened)
             {
-                if (!isIDFFile)
+
+                if (gerberFile.Length > 2 && File.Exists(gerberFile))
                 {
-                    List<Bgra> bgras = new List<Bgra> { };
-                    Color color = lblMaskColor.BackColor;
-                    var argbarray = BitConverter.GetBytes(color.ToArgb())
-                                    .Reverse()
-                                    .ToArray();
-                    Bgra temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    bgras.Add(temp);
-                    color = lblTraceColor.BackColor;
-                    argbarray = BitConverter.GetBytes(color.ToArgb())
-                                    .Reverse()
-                                    .ToArray();
-                    temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    bgras.Add(temp);
-                    color = lblPadColor.BackColor;
-                    argbarray = BitConverter.GetBytes(color.ToArgb())
-                                    .Reverse()
-                                    .ToArray();
-                    temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    bgras.Add(temp);
-                    color = lblSilkColor.BackColor;
-                    argbarray = BitConverter.GetBytes(color.ToArgb())
-                                    .Reverse()
-                                    .ToArray();
-                    temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
-                    bgras.Add(temp);
-                    writeDecalImage(boardJSON, bgras[0], bgras[1], bgras[2], bgras[3]);
+                    Progress P = new Progress(@gerberFile, lblMaskColor.BackColor, lblSilkColor.BackColor, lblPadColor.BackColor, lblTraceColor.BackColor);
+                    P.Text = "Gerber Rendering Progress";
+                    P.StartThread(0);
+                    P.ShowDialog();
+                    P = null;
+                    string directoryPath = Path.GetDirectoryName(boardPartPath);
+                    Mat imgPng = new Mat();
+                    CvInvoke.Imdecode(UtilityClass.TopDecal, ImreadModes.Unchanged, imgPng);
+                    Image<Bgra, byte> TopDecalImage = imgPng.ToImage<Bgra, byte>();
+                    //TopDecalImage = TopDecalImage.Flip(FlipType.Vertical);
+                    deleteFile(topDecal);
+                    topDecal = RandomString(10) + "top_decal.png";
+                    TopDecalImage.PyrUp().Save(@Path.Combine(directoryPath, topDecal));
+                    topDecal = @Path.Combine(directoryPath, topDecal);
+                    UtilityClass.TopDecal = null;
+                    imgPng.Dispose();
+                    TopDecalImage.Dispose();
+
+                    imgPng = new Mat();
+                    CvInvoke.Imdecode(UtilityClass.BottomDecal, ImreadModes.Unchanged, imgPng);
+                    Image<Bgra, byte> BottomDecalImage = imgPng.ToImage<Bgra, byte>();
+                    BottomDecalImage = BottomDecalImage.Flip(FlipType.Vertical).Flip(FlipType.Horizontal);
+                    deleteFile(bottomDecal);
+                    bottomDecal = RandomString(10) + "bottom_decal.png";
+                    BottomDecalImage.PyrUp().Save(@Path.Combine(directoryPath, bottomDecal));
+                    bottomDecal = @Path.Combine(directoryPath, bottomDecal);
+                    UtilityClass.BottomDecal = null;
+                    imgPng.Dispose();
+                    BottomDecalImage.Dispose();
 
                     addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
                 }
                 else
                 {
-                    if(gerberFile.Length>2)
+                    if (!isIDFFile)
                     {
-                        if(File.Exists(gerberFile))
-                        {
-                            Progress P = new Progress(@gerberFile, lblMaskColor.BackColor, lblSilkColor.BackColor, lblPadColor.BackColor, lblTraceColor.BackColor);
-                            P.Text = "Gerber Rendering Progress";
-                            P.StartThread(0);
-                            P.ShowDialog();
-                            P = null;
-                            string directoryPath = Path.GetDirectoryName(boardPartPath);
-                            Mat imgPng = new Mat();
-                            CvInvoke.Imdecode(UtilityClass.TopDecal, ImreadModes.Unchanged, imgPng);
-                            Image<Bgra, byte> TopDecalImage = imgPng.ToImage<Bgra, byte>();
-                            //TopDecalImage = TopDecalImage.Flip(FlipType.Vertical);
-                            deleteFile(topDecal);
-                            topDecal = RandomString(10) + "top_decal.png";
-                            TopDecalImage.PyrUp().Save(@Path.Combine(directoryPath, topDecal));
-                            topDecal = @Path.Combine(directoryPath, topDecal);
-                            UtilityClass.TopDecal = null;
-                            imgPng.Dispose();
-                            TopDecalImage.Dispose();
+                        List<Bgra> bgras = new List<Bgra> { };
+                        Color color = lblMaskColor.BackColor;
+                        var argbarray = BitConverter.GetBytes(color.ToArgb())
+                                        .Reverse()
+                                        .ToArray();
+                        Bgra temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
+                        bgras.Add(temp);
+                        color = lblTraceColor.BackColor;
+                        argbarray = BitConverter.GetBytes(color.ToArgb())
+                                        .Reverse()
+                                        .ToArray();
+                        temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
+                        bgras.Add(temp);
+                        color = lblPadColor.BackColor;
+                        argbarray = BitConverter.GetBytes(color.ToArgb())
+                                        .Reverse()
+                                        .ToArray();
+                        temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
+                        bgras.Add(temp);
+                        color = lblSilkColor.BackColor;
+                        argbarray = BitConverter.GetBytes(color.ToArgb())
+                                        .Reverse()
+                                        .ToArray();
+                        temp = new Bgra(argbarray[3], argbarray[2], argbarray[1], argbarray[0]);
+                        bgras.Add(temp);
+                        writeDecalImage(boardJSON, bgras[0], bgras[1], bgras[2], bgras[3]);
 
-                            imgPng = new Mat();
-                            CvInvoke.Imdecode(UtilityClass.BottomDecal, ImreadModes.Unchanged, imgPng);
-                            Image<Bgra, byte> BottomDecalImage = imgPng.ToImage<Bgra, byte>();
-                            BottomDecalImage = BottomDecalImage.Flip(FlipType.Vertical).Flip(FlipType.Horizontal);
-                            deleteFile(bottomDecal);
-                            bottomDecal = RandomString(10) + "bottom_decal.png";
-                            BottomDecalImage.PyrUp().Save(@Path.Combine(directoryPath, bottomDecal));
-                            bottomDecal = @Path.Combine(directoryPath, bottomDecal);
-                            UtilityClass.BottomDecal = null;
-                            imgPng.Dispose();
-                            BottomDecalImage.Dispose();
-
-                            addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
-                        }
-                        else
-                            MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                        addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
                     }
                     else
+                    {
                         MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                    }
                 }
+
+
+                //else
+                //{
+                //    if (gerberFile.Length > 2)
+                //    {
+                //        if (File.Exists(gerberFile))
+                //        {
+                //            Progress P = new Progress(@gerberFile, lblMaskColor.BackColor, lblSilkColor.BackColor, lblPadColor.BackColor, lblTraceColor.BackColor);
+                //            P.Text = "Gerber Rendering Progress";
+                //            P.StartThread(0);
+                //            P.ShowDialog();
+                //            P = null;
+                //            string directoryPath = Path.GetDirectoryName(boardPartPath);
+                //            Mat imgPng = new Mat();
+                //            CvInvoke.Imdecode(UtilityClass.TopDecal, ImreadModes.Unchanged, imgPng);
+                //            Image<Bgra, byte> TopDecalImage = imgPng.ToImage<Bgra, byte>();
+                //            //TopDecalImage = TopDecalImage.Flip(FlipType.Vertical);
+                //            deleteFile(topDecal);
+                //            topDecal = RandomString(10) + "top_decal.png";
+                //            TopDecalImage.PyrUp().Save(@Path.Combine(directoryPath, topDecal));
+                //            topDecal = @Path.Combine(directoryPath, topDecal);
+                //            UtilityClass.TopDecal = null;
+                //            imgPng.Dispose();
+                //            TopDecalImage.Dispose();
+
+                //            imgPng = new Mat();
+                //            CvInvoke.Imdecode(UtilityClass.BottomDecal, ImreadModes.Unchanged, imgPng);
+                //            Image<Bgra, byte> BottomDecalImage = imgPng.ToImage<Bgra, byte>();
+                //            BottomDecalImage = BottomDecalImage.Flip(FlipType.Vertical).Flip(FlipType.Horizontal);
+                //            deleteFile(bottomDecal);
+                //            bottomDecal = RandomString(10) + "bottom_decal.png";
+                //            BottomDecalImage.PyrUp().Save(@Path.Combine(directoryPath, bottomDecal));
+                //            bottomDecal = @Path.Combine(directoryPath, bottomDecal);
+                //            UtilityClass.BottomDecal = null;
+                //            imgPng.Dispose();
+                //            BottomDecalImage.Dispose();
+
+                //            addDecalsToBoard(TaskpaneIntegration.mSolidworksApplication);
+                //        }
+                //        else
+                //            MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                //    }
+                //    else
+                //        MessageBox.Show("IDF files contains no style information. You can only change the board and holes color.");
+                //}
             }
             //deleteFile(topDecal);
             // deleteFile(bottomDecal);
