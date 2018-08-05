@@ -47,6 +47,7 @@ namespace LP.SolidWorks.ECADWorksAddin
         private bool FileOpened = false;
         private bool isIDFFile = false;
         private string gerberFile = "";
+        private int idstart = 5842;
         private class ComponentAttribute
         {
             public PointF location;
@@ -56,6 +57,8 @@ namespace LP.SolidWorks.ECADWorksAddin
             public string modelPath;
             public string componentID;
             public string noteID;
+            public string redef;
+            public string part_number;
 
         };
 
@@ -89,6 +92,7 @@ namespace LP.SolidWorks.ECADWorksAddin
         private string PCBStylePath = "PCBStyle.json";
         private int topDecalID=-1;
         private int bottomDecalID = -1;
+        private string openedFile = "";
         private bool modelExists(string componentID, SldWorks mSolidworksApplication)
         {
             if (componentID.Length < 2)
@@ -445,6 +449,15 @@ namespace LP.SolidWorks.ECADWorksAddin
                     serializer.Serialize(file, libraryJSONList, typeof(ConcurrentDictionary<string, ComponentLibrary>));
                 }
             }
+        }
+
+        private dynamic readTemplate()
+        {
+            const string jsontemplate = "{\"IDF_Header\":{\"Version\":\"V4.0\",\"Creation_Date_Time\":\"Date_string\",\"Owner_Name\":\"None\",\"Owner_Phone\":\"\",\"Owner_EMail\":\"\",\"Source_App_Type\":\"ECAD\",\"Source_App_Vendor\":\"Autodesk\",\"Source_App_Name\":\"Eagle CAD\",\"Source_App_Version\":\"V1.0\",\"Source_Tx_Name\":\"Eagle JSON Export\",\"Source_Tx_Version\":\"V1.0\",\"Entity_Count\":{\"Elec_Part_Defs\":\"5\",\"Elec_Part_Insts\":\"7\",\"Mech_Part_Defs\":\"0\",\"Mech_Part_Insts\":\"0\",\"Board_Part_Defs\":\"1\",\"Board_Part_Insts\":\"1\",\"Board_Assy_Defs\":\"0\",\"Board_Assy_Insts\":\"0\",\"Panel_Part_Defs\":\"0\",\"Panel_Part_Insts\":\"0\",\"Panel_Assy_Defs\":\"0\",\"Panel_Assy_Insts\":\"0\"},\"Comp_Part\":[\"Annotation\",\"Cavity\",\"Circle\",\"Circular_Arc\",\"Cutout\",\"Electrical_Part\",\"Extrusion\",\"Leader\",\"Material\",\"Mechanical_Part\",\"Pin\",\"Polycurve\",\"Polycurve_Area\",\"Polygon\",\"Polyline\",\"Text\",\"Thermal_Model\",\"Thermal_CV\",\"Thermal_RV\"],\"Board_Part\":[\"Annotation\",\"Board_Part\",\"Cavity\",\"Circle\",\"Cutout\",\"Extrusion\",\"Figure\",\"Filled_Area\",\"Footprint\",\"Graphic\",\"Hole\",\"Keepin\",\"Keepout\",\"Leader\",\"Pad\",\"Physical_Layer\",\"Polycurve_Area\",\"Polygon\",\"Polyline\",\"Text\",\"Trace\"],\"Board_Assy\":[\"Board_Assembly\",\"Board_Part_Instance\",\"Electrical_Part_Instance\",\"Mechanical_Part_Instance\",\"Sublayout\"],\"Default_Units\":\"MM\",\"Min_Res\":\"0\",\"Notes\":\"\"},\"Assemblies\":{\"Board_Assembly\":{\"Entity_ID\":\"#2501\",\"Assy_Name\":\"Board_Assembly\",\"Part_Number \":\"Board_Assembly\",\"Units\":\"Global\",\"Type\":\"Traditional\",\"Board_Inst\":{\"Board_Part_Instance\":{\"Entity_ID\":\"#2502\",\"Part_Name\":\"untitled\",\"Refdes\":\"Unassigned\",\"XY_Loc\":[0.0,0.0],\"Rotation\":\"0.0\"}},\"Comp_Insts\":[]}},\"Parts\":{\"Board_Part\":{\"Entity_ID\":\"#2525\",\"Part_Name\":\"untitled\",\"Units\":\"Global\",\"Type\":\"Unspecified\",\"Phy_Layers\":[{\"Entity_ID\":\"#2526\",\"Layer_Name\":\"Conductor_Bottom\",\"Type\":\"Conductive\",\"Position\":\"1\",\"Thickness\":\"0.05\"},{\"Entity_ID\":\"#2527\",\"Layer_Name\":\"Dielectric_Middle\",\"Type\":\"Dielectric\",\"Position\":\"2\",\"Thickness\":\"1.500000\"},{\"Entity_ID\":\"#2528\",\"Layer_Name\":\"Conductor_Top\",\"Type\":\"Conductive\",\"Position\":\"3\",\"Thickness\":\"0.05\"}],\"Shape\":{\"Extrusion\":{\"Entity_ID\":\"#2529\",\"Top_Height\":\"1.6\",\"Bot_Height\":\"0\",\"Outline\":{\"Polycurve_Area\":{\"Entity_ID\":\"#2530\",\"Line_Font\":\"Solid\",\"Line_Color\":[0.0,0.0,0.0],\"Fill_Color\":[0.0,0.0,0.0],\"Vertices\":[]}}}},\"Features\":[]},\"Electrical_Part\":[]}}";
+            dynamic ret=JsonConvert.DeserializeObject<dynamic>(jsontemplate);
+            if (ret != null)
+                return ret;
+            return null;
         }
         private void populateStyleComboBox()
         {
@@ -1743,7 +1756,6 @@ namespace LP.SolidWorks.ECADWorksAddin
             //swModel.ClearSelection2(true);
 
         }
-
         private void rotateComponent(string componentID, double angle, int alongAxis, SldWorks mSolidworksApplication)
         {
             //AssemblyDoc swAssy;
@@ -1852,7 +1864,6 @@ namespace LP.SolidWorks.ECADWorksAddin
             swModel.ClearSelection2(true);
 
         }
-
         private void translateComponentDragOperator(string componentID, double[] distance, bool detectCollision, SldWorks mSolidworksApplication,bool forcemove=false)
         {
             //AssemblyDoc swAssy;
@@ -1939,7 +1950,6 @@ namespace LP.SolidWorks.ECADWorksAddin
                 swModel.ClearSelection2(true);
             }
         }
-
         private void translateComponentDragOperator(double[] distance, bool detectCollision, SldWorks mSolidworksApplication)
         {
             //AssemblyDoc swAssy;
@@ -2137,13 +2147,13 @@ namespace LP.SolidWorks.ECADWorksAddin
             else
                 return new PointF(centers[0].X, centers[0].Y);
         }
-
         private string createBoardFromIDF(string emnfile, SldWorks mSolidworksApplication)
         {
             
             List<List<IDFBoardOutline>> IDFboardData = new List<List<IDFBoardOutline>> { new List<IDFBoardOutline> { } };
             double boardThickness = 0;
             const Int32 BufferSize = 2048;
+            openedFile = emnfile;
             using (var fileStream = File.OpenRead(emnfile))
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
             {
@@ -2244,7 +2254,6 @@ namespace LP.SolidWorks.ECADWorksAddin
                             skSegment = swModel.SketchManager.CreateArc(convertUnit(centers.X), convertUnit(centers.Y), 0, convertUnit((double)vertices[i].location.X), convertUnit((double)vertices[i].location.Y), 0, convertUnit((double)vertices[i - 1].location.X), convertUnit((double)vertices[i - 1].location.Y), 0, 1);
                     }
                 }
-
             }
 
             for (int j = 1; j < IDFboardData.Count; j++)
@@ -2534,6 +2543,7 @@ namespace LP.SolidWorks.ECADWorksAddin
         {
             boardComponents.Clear();
             ComponentTransformations.Clear();
+            ComponentModels.Clear();
             const Int32 BufferSize = 2048;
             using (var fileStream = File.OpenRead(emnfile))
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
@@ -2542,6 +2552,8 @@ namespace LP.SolidWorks.ECADWorksAddin
                 List<IDFBoardOutline> currentOutline = new List<IDFBoardOutline> { };
                 bool startProcessing = false;
                 string packageName = "";
+                string redef = "";
+                string partNumber = "";
                 while ((line = streamReader.ReadLine()) != null)
                 {
                     line = line.Trim();
@@ -2558,17 +2570,7 @@ namespace LP.SolidWorks.ECADWorksAddin
                     {
                         if (line.Length > 2)
                         {
-                            //List<string> lineElements = line.Split(' ').ToList();
                             List<string> cleanLineElements = splitString(line);
-                            //cleanLineElements.Clear();
-                            //for (int i = 0; i < lineElements.Count; i++)
-                            //{
-                            //    lineElements[i] = lineElements[i].Trim();
-                            //    if (lineElements[i].Length > 0)
-                            //    {
-                            //        cleanLineElements.Add(lineElements[i]);
-                            //    }
-                            //}
                             if(cleanLineElements.Count>3)
                             {
                                 //it's placement data for the package
@@ -2579,6 +2581,8 @@ namespace LP.SolidWorks.ECADWorksAddin
                                     c.side = true;
                                 else
                                     c.side = false;
+                                c.redef = redef;
+                                c.part_number = partNumber;
                                 c.modelID = "";
                                 c.modelPath = "";
                                 c.componentID = CalculateMD5Hash(cleanLineElements[0]+ cleanLineElements[0]+ packageName+ cleanLineElements[4].ToUpper()+ RandomString(10));         //May be we can generate an ID as IDF doesn't do that for us
@@ -2587,11 +2591,15 @@ namespace LP.SolidWorks.ECADWorksAddin
                                     boardComponents[packageName].Add(c);
                                 else
                                     boardComponents.TryAdd(packageName, new List<ComponentAttribute> { c });
+                                if (!ComponentModels.ContainsKey(packageName))
+                                    ComponentModels.TryAdd(packageName, "");
                             }
                             else
                             {
                                 //it's package name
                                 packageName = cleanLineElements[0];
+                                redef = cleanLineElements[2];
+                                partNumber = cleanLineElements[1];
                             }
                         }
                     }
@@ -3399,7 +3407,7 @@ namespace LP.SolidWorks.ECADWorksAddin
             }
             return output;
         }
-        private void saveDecalsFromBoard(SldWorks mSolidworksApplication)
+        private void saveDecalsFromBoard(SldWorks mSolidworksApplication,dynamic boardJSON)
         {
             int errors = 0;
             int status = 0;
@@ -3573,58 +3581,64 @@ namespace LP.SolidWorks.ECADWorksAddin
                     if (File.Exists(topDecal))
                     {
                         boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2] + (boardHeight / 2), false, 0, null, 0);
-                        string directoryPath = Path.GetDirectoryName(boardPartPath);
-                        //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault); //SW > 2017
-                        swSelMgr = (SelectionMgr)swModel.SelectionManager;
-                        swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
-                        swModel.ClearSelection2(true);
+                        if (boolstatus)
+                        {
+                            string directoryPath = Path.GetDirectoryName(boardPartPath);
+                            //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, -1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault); //SW > 2017
+                            swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                            swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
+                            swModel.ClearSelection2(true);
 
-                        //Create the decal
-                        swModelDocExt.DeleteAllDecals();
-                        swDecal = (Decal)swModelDocExt.CreateDecal();
+                            //Create the decal
+                            swModelDocExt.DeleteAllDecals();
+                            swDecal = (Decal)swModelDocExt.CreateDecal();
 
-                        swDecal.MaskType = 3;
-                        swMaterial = (RenderMaterial)swDecal;
-                        boolstatus = swMaterial.AddEntity(swFace);
-                        swMaterial.TextureFilename = topDecal;
-                        swMaterial.MappingType = 0;
-                        swMaterial.FixedAspectRatio = false;
-                        swMaterial.FixedAspectRatio = (bool)topDecalTransformation[0];
-                        swMaterial.XPosition = (double)topDecalTransformation[1];
-                        swMaterial.YPosition = (double)topDecalTransformation[2];
-                        swMaterial.Height = (double)topDecalTransformation[3];
-                        swMaterial.Width = (double)topDecalTransformation[4];
-                        swMaterial.FitWidth = (bool)topDecalTransformation[5];
-                        swMaterial.FitHeight = (bool)topDecalTransformation[6];
+                            swDecal.MaskType = 3;
+                            swMaterial = (RenderMaterial)swDecal;
+                            boolstatus = swMaterial.AddEntity(swFace);
+                            swMaterial.TextureFilename = topDecal;
+                            swMaterial.MappingType = 0;
+                            swMaterial.FixedAspectRatio = false;
+                            swMaterial.FixedAspectRatio = (bool)topDecalTransformation[0];
+                            swMaterial.XPosition = (double)topDecalTransformation[1];
+                            swMaterial.YPosition = (double)topDecalTransformation[2];
+                            swMaterial.Height = (double)topDecalTransformation[3];
+                            swMaterial.Width = (double)topDecalTransformation[4];
+                            swMaterial.FitWidth = (bool)topDecalTransformation[5];
+                            swMaterial.FitHeight = (bool)topDecalTransformation[6];
 
-                        boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
-                        topDecalID = nDecalID;
+                            boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
+                            topDecalID = nDecalID;
+                        }
                     }
                     if (File.Exists(bottomDecal))
                     {
                         boolstatus = swModelDocExt.SelectByID2("", "FACE", boardOrigin[0], boardOrigin[1], boardOrigin[2] - (boardHeight / 2), false, 0, null, 0);
                         //boolstatus = swModelDocExt.SelectByRay(boardFirstPoint[0], boardFirstPoint[1], (boardHeight / 2), 0, 0, 1, (boardHeight / 2), (int)swSelectType_e.swSelFACES, false, 0, (int)swSelectOption_e.swSelectOptionDefault);     //sw>2017
-                        swSelMgr = (SelectionMgr)swModel.SelectionManager;
-                        swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
-                        swModel.ClearSelection2(true);
+                        if (boolstatus)
+                        {
+                            swSelMgr = (SelectionMgr)swModel.SelectionManager;
+                            swFace = (Face2)swSelMgr.GetSelectedObject6(1, -1);
+                            swModel.ClearSelection2(true);
 
-                        //Create the decal
-                        swDecal = (Decal)swModelDocExt.CreateDecal();
-                        swDecal.MaskType = 3;
-                        swMaterial = (RenderMaterial)swDecal;
-                        boolstatus = swMaterial.AddEntity(swFace);
-                        swMaterial.TextureFilename = bottomDecal;
-                        swMaterial.MappingType = 0;
-                        swMaterial.FixedAspectRatio = false;
-                        swMaterial.FixedAspectRatio = (bool)bottomDecalTransformation[0];
-                        swMaterial.XPosition = (double)bottomDecalTransformation[1];
-                        swMaterial.YPosition = (double)bottomDecalTransformation[2];
-                        swMaterial.Height = (double)bottomDecalTransformation[3];
-                        swMaterial.Width = (double)bottomDecalTransformation[4];
-                        swMaterial.FitWidth = (bool)bottomDecalTransformation[5];
-                        swMaterial.FitHeight = (bool)bottomDecalTransformation[6];
-                        boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
-                        bottomDecalID = nDecalID;
+                            //Create the decal
+                            swDecal = (Decal)swModelDocExt.CreateDecal();
+                            swDecal.MaskType = 3;
+                            swMaterial = (RenderMaterial)swDecal;
+                            boolstatus = swMaterial.AddEntity(swFace);
+                            swMaterial.TextureFilename = bottomDecal;
+                            swMaterial.MappingType = 0;
+                            swMaterial.FixedAspectRatio = false;
+                            swMaterial.FixedAspectRatio = (bool)bottomDecalTransformation[0];
+                            swMaterial.XPosition = (double)bottomDecalTransformation[1];
+                            swMaterial.YPosition = (double)bottomDecalTransformation[2];
+                            swMaterial.Height = (double)bottomDecalTransformation[3];
+                            swMaterial.Width = (double)bottomDecalTransformation[4];
+                            swMaterial.FitWidth = (bool)bottomDecalTransformation[5];
+                            swMaterial.FitHeight = (bool)bottomDecalTransformation[6];
+                            boolstatus = swModelDocExt.AddDecal(swDecal, out nDecalID);
+                            bottomDecalID = nDecalID;
+                        }
                     }
                     swModel.Visible = false;
                     status = swModel.SaveAs3(boardPartPath, 0, 2);
@@ -4277,22 +4291,240 @@ namespace LP.SolidWorks.ECADWorksAddin
             catch (Exception)
             { }
         }
+        private void saveIDFToJSON()
+        {
+            List<List<IDFBoardOutline>> IDFboardData = new List<List<IDFBoardOutline>> { new List<IDFBoardOutline> { } };
+            double boardThickness = 0;
+            const Int32 BufferSize = 2048;
+            using (var fileStream = File.OpenRead(openedFile))
+            using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+            {
+                String line;
+                List<IDFBoardOutline> currentOutline = new List<IDFBoardOutline> { };
+                bool startProcessing = false;
+                int previndex = -1;
+                int curIndex = -1;
+                while ((line = streamReader.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (!startProcessing && line.IndexOf(".BOARD_OUTLINE") != -1)
+                    {
+                        startProcessing = true;
+                        line = streamReader.ReadLine();
+                        boardThickness = convertUnit(Convert.ToDouble(line));
+                        IDFboardData.Clear();
+                        continue;
+                    }
+                    if (startProcessing && line.IndexOf(".END_BOARD_OUTLINE") != -1)
+                    {
+                        IDFboardData.Add(new List<IDFBoardOutline>(currentOutline));
+                        break;
+                    }
+                    if (startProcessing)
+                    {
+                        if (line.Length > 2)
+                        {
+                            //List<string> lineElements = line.Split(' ').ToList();
+                            List<string> lineElements = splitString(line);
+                            List<double> lineElementsDouble = new List<double> { };
+                            lineElementsDouble.Clear();
+                            for (int i = 0; i < lineElements.Count; i++)
+                            {
+                                lineElements[i] = lineElements[i].Trim();
+                                if (lineElements[i].Length > 0)
+                                {
+                                    lineElementsDouble.Add(Convert.ToDouble(lineElements[i]));
+                                }
+                            }
+                            curIndex = (int)lineElementsDouble[0];
+                            if (curIndex != previndex)
+                            {
+                                if (currentOutline.Count > 0)
+                                {
+                                    IDFboardData.Add(new List<IDFBoardOutline>(currentOutline));
+                                }
+                                currentOutline.Clear();
+                            }
+                            IDFBoardOutline outline = new IDFBoardOutline();
+                            outline.location.X = (float)Convert.ToDouble(lineElementsDouble[1]);
+                            outline.location.Y = (float)Convert.ToDouble(lineElementsDouble[2]);
+                            outline.rotation = (float)Convert.ToDouble(lineElementsDouble[3]);
+                            currentOutline.Add(outline);
+                            previndex = curIndex;
+                        }
+                    }
+                }
+            }
+            dynamic template = readTemplate();
+            JArray vertices1 = new JArray();
+            List<IDFBoardOutline> vertices = IDFboardData[0];
+            for (int i = 0; i < vertices.Count; i++)
+                vertices1.Add(new JArray(new double[] { vertices[i].location.X, vertices[i].location.Y, vertices[i].rotation }));
+            template.Parts.Board_Part.Shape.Extrusion.Outline.Polycurve_Area.Vertices = vertices1;
+            if(IDFboardData.Count>1)
+            {
+                vertices1 = new JArray();
+                vertices1 = (JArray)template.Parts.Board_Part.Features;
+                for(int i=1;i< IDFboardData.Count; i++)
+                {
+                    vertices1.Add(addFeatureCutout(IDFboardData[i]));
+                }
+                
+            }
+            dynamic partEnd = JsonConvert.DeserializeObject<dynamic>("{\"Part_end\":\"True\"}");
+            vertices1.Add(partEnd);
+            template.Parts.Board_Part.Features = vertices1;
+            using (var fileStream = File.OpenRead(openedFile))
+            using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+            {
+                String line;
+                vertices1 = new JArray();
+                vertices1 = (JArray)template.Parts.Board_Part.Features;
+                List<IDFBoardOutline> currentOutline = new List<IDFBoardOutline> { };
+                bool startProcessing = false;
+                while ((line = streamReader.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (!startProcessing && line.IndexOf(".DRILLED_HOLES") != -1)
+                    {
+                        startProcessing = true;
+                        continue;
+                    }
+                    if (startProcessing && line.IndexOf(".END_DRILLED_HOLES") != -1)
+                    {
+                        template.Parts.Board_Part.Features = vertices1;
+                        break;
+                    }
+                    if (startProcessing)
+                    {
+                        if (line.Length > 2)
+                        {
+                            //List<string> lineElements = line.Split(' ').ToList();
+                            List<string> lineElements = splitString(line);
+                            List<double> lineElementsDouble = new List<double> { };
+                            lineElementsDouble.Clear();
+                            int k = 0;
+                            for (int i = 0; i < lineElements.Count; i++)
+                            {
+                                lineElements[i] = lineElements[i].Trim();
+                                if (lineElements[i].Length > 0)
+                                {
+                                    lineElementsDouble.Add(Convert.ToDouble(lineElements[i]));
+                                    k++;
+                                    if (k >= 3)
+                                        break;
+                                }
+                            }
+                            vertices1.Add(addFeatureHoles(lineElementsDouble[1],lineElementsDouble[2], (lineElementsDouble[0]/2)));
+                        }
+                    }
+                }
+            }
+            vertices1 = new JArray();
+            vertices1 = (JArray)template.Assemblies.Board_Assembly.Comp_Insts;
+            JArray partsArray = new JArray();
+            partsArray = (JArray)template.Parts.Electrical_Part;
+            List<string> keys = new List<string>(boardComponents.Keys);
+            foreach (string key in keys)
+            {
+                if (ComponentModels.ContainsKey(key))
+                {
+                    string modelPath = ComponentModels[key];
+                    List<ComponentAttribute> c = boardComponents[key];
+                    partsArray.Add(addPart(boardComponents[key][0], key));                  //parts array
+                    for (int i = 0; i < c.Count; i++)
+                        vertices1.Add(addPartInstance(boardComponents[key][i], key));           //parts array instance
+                }
+            }
+            template.Assemblies.Board_Assembly.Comp_Insts = vertices1;
+            template.Parts.Electrical_Part = partsArray;
+            template.Parts.Board_Part.Shape.Extrusion.Top_Height = (double)numericUpDownBoardHeight.Value;
+            saveDecalsFromBoard(TaskpaneIntegration.mSolidworksApplication, template);
+            saveJSONtoFile(template);
+            //SaveFileDialog Savefile = new SaveFileDialog
+            //{
+            //    Filter = "Board JSON files (*.json) | *.json",
+            //    OverwritePrompt = true,
+            //    Title = "Save Board JSON file As. . .",
+            //    SupportMultiDottedExtensions = false
+            //};
+            //if (Savefile.ShowDialog() == DialogResult.OK)
+            //{
+            //    using (StreamWriter file = File.CreateText(@Savefile.FileName))
+            //    {
+            //        //string json = JsonConvert.SerializeObject(boardJSON);
+            //        JsonSerializer serializer = new JsonSerializer();
+            //        serializer.Serialize(file, template);
+            //    }
+            //}
+        }
+        private string generateId()
+        {
+            idstart++;
+            return idstart.ToString();
+        }
+        private dynamic addFeatureCutout(List<IDFBoardOutline> vertices)
+        {
+            
+            string cutoutTemplate = "{\"Feature_Type\":\"Cutout\",\"Entity_ID\":\"#"+ generateId() + "\",\"Outline\":{\"Polycurve_Area\":{\"Entity_ID\":\"#"+ generateId()+"\",\"Line_Font\":\"Solid\",\"Line_Color\":[0.0,0.0,0.0],\"Fill_Color\":[0.0,0.0,0.0],\"Vertices\":[]}}}";
+            dynamic template = JsonConvert.DeserializeObject<dynamic>(cutoutTemplate);
+            JArray vertices1 = new JArray();
+            for (int i = 0; i < vertices.Count; i++)
+                vertices1.Add(new JArray(new double[] { vertices[i].location.X, vertices[i].location.Y, vertices[i].rotation }));
+            template.Outline.Polycurve_Area.Vertices = vertices1;
+            return template;
+        }
 
+        private dynamic addFeatureHoles(double x,double y,double radius)
+        {
+
+            string holeTemplate = "{\"Feature_Type\":\"Hole\",\"Entity_ID\":\"#" + generateId() + "\",\"Type\":\"Thru_Pin\",\"Plated\":\"True\",\"Shape_Type\":\"Round\",\"Outline\":{\"Circle\":{\"Entity_ID\":\"#" + generateId() + "\",\"Line_Font\":\"Solid\",\"XY_Loc\":[0,0],\"Radius\":\"0\"}},\"XY_Loc\":[],\"Rotation\":\"0.0\"}";
+            dynamic template = JsonConvert.DeserializeObject<dynamic>(holeTemplate);
+            JArray center = new JArray();
+            center.Add(x);
+            center.Add(y);
+            template.XY_Loc = center;
+            template.Outline.Circle.Radius = radius;
+            return template;
+        }
+        private dynamic addPartInstance(ComponentAttribute c,string packageName)
+        {
+            string partTemplate = "";
+            if (c.side)
+                partTemplate = "{\"Type\":\"Electrical_Part_Instance\",\"Entity_ID\":\"" + c.componentID + "\",\"Part_Name\":\""+packageName+"\",\"Part_Number\":\""+ c.part_number + "\",\"In_BOM\":\"True\",\"Refdes\":\""+c.redef + "\",\"Lock\":\"None\",\"XY_Loc\":[],\"Side\":\"Top\",\"Rotation\":\"\",\"Mnt_Offset\":[0,0]}";
+            else
+                partTemplate = "{\"Type\":\"Electrical_Part_Instance\",\"Entity_ID\":\"" + c.componentID + "\",\"Part_Name\":\"" + packageName + "\",\"Part_Number\":\"" + c.part_number + "\",\"In_BOM\":\"True\",\"Refdes\":\"" + c.redef + "\",\"Lock\":\"None\",\"XY_Loc\":[],\"Side\":\"Bottom\",\"Rotation\":\"\",\"Mnt_Offset\":[0,0]}";
+            dynamic template = JsonConvert.DeserializeObject<dynamic>(partTemplate);
+            JArray XY_Loc = new JArray();
+            XY_Loc.Add(c.location.X);
+            XY_Loc.Add(c.location.Y);
+            template.XY_Loc = XY_Loc;
+            template.Rotation = c.rotation;
+            return template;
+        }
+        private dynamic addPart(ComponentAttribute c, string packageName)
+        {
+            string partTemplate = "{\"Entity_ID\":\"" + generateId() + "\",\"Part_Name\":\"" + packageName + "\",\"Units\":\"Global\",\"Type\":\"Unspecified\",\"Shape\":{\"Extrusion\":{\"Entity_ID\":\"#" + generateId() + "\",\"Top_Height\":1.0,\"Bot_Height\":0,\"Outline\":{\"Polycurve_Area\":{\"Entity_ID\":\"#2512\",\"Line_Font \":\"Solid\",\"Line_Color\":[0.0,0.0,0.0],\"Fill_Color\":[0.0,0.0,0.0],\"Vertices\":[[-5.588000,4.542981,0.0],[2.540000,4.542981,0],[2.540000,-0.508000,0],[-5.588000,-0.508000,0],[-5.588000,4.542981,0.0]]}}}},\"Properties\":{\"Part_Number\":\""+c.part_number+"\"}}";
+            dynamic template = JsonConvert.DeserializeObject<dynamic>(partTemplate);
+            return template;
+        }
         private void buttonSaveJSON_Click(object sender, EventArgs e)
         {
             if (FileOpened)
             {
+                UpdateAllTransformations(TaskpaneIntegration.mSolidworksApplication);
                 if (isIDFFile)
                 {
-                    MessageBox.Show("Save function not implemented for IDF files. ");
+                    saveIDFToJSON();
+                    //MessageBox.Show("Save function not implemented for IDF files. ");
                 }
                 else
                 {
-                    UpdateAllTransformations(TaskpaneIntegration.mSolidworksApplication);
                     boardJSON.Parts.Board_Part.Shape.Extrusion.Top_Height = (double)numericUpDownBoardHeight.Value;
-                    saveDecalsFromBoard(TaskpaneIntegration.mSolidworksApplication);
+                    saveDecalsFromBoard(TaskpaneIntegration.mSolidworksApplication, boardJSON);
                     saveJSONtoFile(boardJSON);
                 }
+
             }
         }
 
